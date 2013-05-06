@@ -29,12 +29,12 @@ class MultiLingualTextWidget(MultiWidget):
         xml_as_python_object = objectify.fromstring(value)
         # Creating a dictionary of all the languages passed in the value XML
         # with the language code (i.e. 'en', 'de', 'fr') as the key
-        value_as_dict = {}
+        language_text_as_dict = {}
         for language in xml_as_python_object.language:
-            value_as_dict[str(language.language_code)] = str(language.text)
+            language_text_as_dict[unicode(language.language_code)] = unicode(language.language_text)
         # Returning text from XML tree in order dictated by self.languages
         return [
-            value_as_dict[language_code]
-            if language_code in value_as_dict else ""
+            language_text_as_dict[language_code]
+            if language_code in language_text_as_dict else ""
             for language_code, language_verbose in self.languages
         ] 

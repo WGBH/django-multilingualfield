@@ -1,0 +1,10 @@
+<languages>
+    <language>
+        <language_code>en</language_code>
+        <language_text>Hello!</language_text>
+    </language>
+    <language>
+        <language_code>es</language_code>
+        <language_text>¡Hola!</language_text>
+    </language>
+</languages>

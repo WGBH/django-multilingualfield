@@ -1,15 +1,27 @@
-from django.forms import MultiValueField
+from django.forms import (
+    CharField,
+    MultiValueField
+)
 
 from lxml import etree
 
 from multilingualfield import LANGUAGES
-from multilingualfield.widgets import MultiLingualTextWidget
+from multilingualfield.widgets import (
+    MultiLingualTextFieldWidget
+)
 
 class MultiLingualTextForm(MultiValueField):
     """
     The form used for MultiLingualTextFields
     """
-    widget = MultiLingualTextWidget
+    widget = MultiLingualTextFieldWidget
+
+    def __init__(self, *args, **kwargs):
+        fields = [
+            CharField(label=language_verbose)
+            for language_code, language_verbose in LANGUAGES
+        ]
+        super(MultiLingualTextForm, self).__init__(tuple(fields), *args, **kwargs)
 
     def compress(self, data_list):
         """

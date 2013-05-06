@@ -4,6 +4,7 @@ from django.forms.widgets import (
 )
 
 from lxml import objectify
+from lxml.etree import XMLSyntaxError
 
 from multilingualfield import LANGUAGES
 
@@ -25,13 +26,18 @@ class MultiLingualTextWidget(MultiWidget):
         Receives a block of XML and returns a list of values corresponding
         in position to the current ordering of settings.LANGUAGES
         """
-        # Converting XML (passed-in as `value`) to a python object via lxml
-        xml_as_python_object = objectify.fromstring(value)
-        # Creating a dictionary of all the languages passed in the value XML
-        # with the language code (i.e. 'en', 'de', 'fr') as the key
         language_text_as_dict = {}
-        for language in xml_as_python_object.language:
-            language_text_as_dict[unicode(language.language_code)] = unicode(language.language_text)
+        if value:
+            # Converting XML (passed-in as `value`) to a python object via lxml
+            try:
+                xml_as_python_object = objectify.fromstring(value)
+            except XMLSyntaxError:
+                raise Exception("Invalid XML was passed to MultiLingualTextWidget.decompress()!")
+            else:
+                # Creating a dictionary of all the languages passed in the value XML
+                # with the language code (i.e. 'en', 'de', 'fr') as the key
+                for language in xml_as_python_object.language:
+                    language_text_as_dict[unicode(language.language_code)] = unicode(language.language_text)
         # Returning text from XML tree in order dictated by self.languages
         return [
             language_text_as_dict[language_code]

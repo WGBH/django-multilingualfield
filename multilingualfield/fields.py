@@ -1,6 +1,6 @@
 from django.db.models import (
     SubfieldBase,
-    TextField
+    Field
 )
 
 from south.modelsinspector import add_introspection_rules
@@ -18,7 +18,7 @@ add_introspection_rules(
     ]
 )
 
-class MultiLingualTextField(TextField):
+class MultiLingualTextField(Field):
     """
     A django field for storing multiple manually-written
     translations of the same piece of text.
@@ -27,14 +27,6 @@ class MultiLingualTextField(TextField):
 
     __metaclass__ = SubfieldBase
 
-    def formfield(self, **kwargs):
-        # This is a fairly standard way to set up some defaults
-        # while letting the caller override them.
-        defaults = {'form_class': MultiLingualTextForm}
-        defaults.update(kwargs)
-        return super(MultiLingualTextField, self).formfield(**defaults)
-
-class MultiLingualCharField(MultiLingualTextField):
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults
         # while letting the caller override them.

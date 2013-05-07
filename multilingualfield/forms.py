@@ -7,21 +7,25 @@ from lxml import etree
 
 from multilingualfield import LANGUAGES
 from multilingualfield.widgets import (
+    MultiLingualCharFieldWidget,
     MultiLingualTextFieldWidget
 )
 
-class MultiLingualTextForm(MultiValueField):
+class MultiLingualTextFieldForm(MultiValueField):
     """
-    The form used for MultiLingualTextFields
+    The form used by MultiLingualTextField
     """
     widget = MultiLingualTextFieldWidget
 
     def __init__(self, *args, **kwargs):
+        self.individual_widget_max_length = kwargs.get('individual_widget_max_length', None)
+        if 'individual_widget_max_length' in kwargs:
+            del kwargs['individual_widget_max_length']
         fields = [
-            CharField(label=language_verbose)
+            CharField(label=language_verbose, max_length=self.individual_widget_max_length)
             for language_code, language_verbose in LANGUAGES
         ]
-        super(MultiLingualTextForm, self).__init__(tuple(fields), *args, **kwargs)
+        super(MultiLingualTextFieldForm, self).__init__(tuple(fields), *args, **kwargs)
 
     def compress(self, data_list):
         """
@@ -51,3 +55,9 @@ class MultiLingualTextForm(MultiValueField):
                 language_text.text = entry
                 xml.append(language)
         return etree.tostring(xml)
+
+class MultiLingualCharFieldForm(MultiLingualTextFieldForm):
+    """
+    The form used by MultiLingualCharField
+    """
+    widget = MultiLingualCharFieldWidget

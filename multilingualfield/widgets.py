@@ -13,7 +13,8 @@ from multilingualfield import LANGUAGES
 
 class TextWidgetWithLanguageLabel(object):
     """
-    A form widget which prepends a <label> tag
+    A form widget which prepends a <label> tag corresponding
+    to a language in settings.LANGUAGES
     """
 
     def __init__(self, language, attrs):
@@ -53,7 +54,6 @@ class MultiLingualTextFieldWidget(MultiWidget):
     for_each_field_widget = TextareaWithLabel
 
     def __init__(self, attrs=None):
-        print attrs
         widgets = [
             self.for_each_field_widget(language, attrs)
             for language in LANGUAGES

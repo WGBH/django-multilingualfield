@@ -1,7 +1,6 @@
 from django.forms.widgets import (
     MultiWidget,
-    Textarea,
-    TextInput
+    Textarea
 )
 from django.utils.safestring import mark_safe
 
@@ -38,10 +37,9 @@ class MultiLingualTextFieldWidget(MultiWidget):
     for_each_field_widget = TextareaWithLabel
 
     def __init__(self, attrs=None):
-        self.languages = LANGUAGES
         widgets = [
             self.for_each_field_widget(language, attrs)
-            for language in self.languages
+            for language in LANGUAGES
         ]
         super(MultiLingualTextFieldWidget, self).__init__(widgets, attrs)
 
@@ -62,9 +60,9 @@ class MultiLingualTextFieldWidget(MultiWidget):
                 # with the language code (i.e. 'en', 'de', 'fr') as the key
                 for language in xml_as_python_object.language:
                     language_text_as_dict[unicode(language.language_code)] = unicode(language.language_text)
-        # Returning text from XML tree in order dictated by self.languages
+        # Returning text from XML tree in order dictated by LANGUAGES
         return [
             language_text_as_dict[language_code]
             if language_code in language_text_as_dict else ""
-            for language_code, language_verbose in self.languages
+            for language_code, language_verbose in LANGUAGES
         ]

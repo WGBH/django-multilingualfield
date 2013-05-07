@@ -16,6 +16,17 @@ class MultiLingualTextFieldForm(MultiValueField):
     The form used by MultiLingualTextField
     """
     widget = MultiLingualTextFieldWidget
+    
+    def widget_attrs(self, widget):
+        """
+        Given a Widget instance (*not* a Widget class), returns a dictionary of
+        any HTML attributes that should be added to the Widget, based on this
+        Field.
+        """
+        if self.individual_widget_max_length:
+            return {'maxlength':self.individual_widget_max_length}
+        else:
+            return {}
 
     def __init__(self, *args, **kwargs):
         self.individual_widget_max_length = kwargs.get('individual_widget_max_length', None)

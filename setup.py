@@ -14,4 +14,7 @@ setup(
                 'translations of the same piece of text.',
     long_description=open('README.md').read(),
     zip_safe=False,
+    install_requires=[
+        'django-classy-tags>=0.3.4.1',
+    ],
 )

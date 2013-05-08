@@ -25,7 +25,7 @@ class TextWidgetWithLanguageLabel(object):
     def render(self, name, value, attrs=None):
         widget = super(TextWidgetWithLanguageLabel, self).render(name, value, attrs)
         widget = mark_safe(
-                    "<div><label>%s</label>%s</div>" % (
+                    """<div style="clear:left;"><label>%s</label>%s</div>""" % (
                                                         self.label,
                                                         widget
                                                     )
@@ -67,16 +67,21 @@ class MultiLingualTextFieldWidget(MultiWidget):
         """
         language_text_as_dict = {}
         if value:
-            # Converting XML (passed-in as `value`) to a python object via lxml
-            try:
-                xml_as_python_object = objectify.fromstring(value)
-            except XMLSyntaxError:
-                raise Exception("Invalid XML was passed to MultiLingualTextWidget.decompress()!")
+            from multilingualfield.fields import MultiLingualText
+            if isinstance(value, MultiLingualText):
+                for language_code, language_verbose in LANGUAGES:
+                    language_text_as_dict[language_code] = getattr(value, language_code)
             else:
-                # Creating a dictionary of all the languages passed in the value XML
-                # with the language code (i.e. 'en', 'de', 'fr') as the key
-                for language in xml_as_python_object.language:
-                    language_text_as_dict[unicode(language.language_code)] = unicode(language.language_text)
+                # Converting XML (passed-in as `value`) to a python object via lxml
+                try:
+                    xml_as_python_object = objectify.fromstring(value)
+                except XMLSyntaxError:
+                    raise Exception("Invalid XML was passed to MultiLingualTextWidget.decompress()!")
+                else:
+                    # Creating a dictionary of all the languages passed in the value XML
+                    # with the language code (i.e. 'en', 'de', 'fr') as the key
+                    for language in xml_as_python_object.language:
+                        language_text_as_dict[unicode(language.language_code)] = unicode(language.language_text)
         # Returning text from XML tree in order dictated by LANGUAGES
         return [
             language_text_as_dict[language_code]

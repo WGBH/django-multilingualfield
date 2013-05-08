@@ -12,7 +12,7 @@ setup(
     url='http://github.com/WGBH/django-multilingualfield/',
     license='MIT License, see LICENSE',
     description='A django field for storing multiple manually-written' + \
-                'translations of the same piece of text.'
+                'translations of the same piece of text.',
     long_description=open('README.md').read(),
     zip_safe=False,
 )

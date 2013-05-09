@@ -25,13 +25,13 @@ $ pip install /path/to/archive.zip
 
 ## Overview ##
 
-django has [excellent built-in auto-translation tools](https://docs.djangoproject.com/en/dev/topics/i18n/translation/) but a recent project at WGBH necessitated providing manually written translations for nearly all text content served by the site.
+django has [excellent built-in auto-translation tools](https://docs.djangoproject.com/en/dev/topics/i18n/translation/) but a recent project at WGBH required manually-written translations for nearly all text content served by the site.
 
 I didn't want to create multiple `CharField` or `TextField` attributes for each piece of text (i.e. 'title_en' and 'title_es') for multiple reasons:
 
 1. They'd be a giant pain to keep track of.
-2. Templates and/or views would be polluted with alot of unnecessary if/else statements.
-3. The site needed to launch with support for English and Spanish but wanted to make the transition as smooth as possible if/when the day came that another language was added to the site.
+2. Templates and/or views would be polluted with alot of crufty if/else statements.
+3. The site needed to launch with support for English and Spanish but I figured new languages would be added down the road and wanted to make any future additions as smooth as possible.
 
 ### Available Fields ###
 
@@ -40,7 +40,7 @@ I didn't want to create multiple `CharField` or `TextField` attributes for each 
 1. `multilingualfield.fields.MultiLingualCharField`: Functionality mirrors that of django's `django.db.models.CharField`
 2. `multilingualfield.fields.MultiLingualTextField`: Functionality mirrors that of django's `django.db.models.TextField`
 
-At the database level, `MultiLingualCharField` and `MultiLingualTextField` are essentially identical in that their content is both stored within 'text' columns (as opposed to either 'text' or 'varchar'). They diverge only in the widgets they use.
+At the database level, `MultiLingualCharField` and `MultiLingualTextField` are essentially identical in that their content is both stored within 'text' columns (as opposed to either 'varchar' or 'text'); they diverge only in the widgets they use.
 
 Any options you would can pass to a `CharField` or `TextField` (i.e. blank=True, max_length=50) will work as expected but `max_length` will not be enforced at a database level (only during form creation and input validation).
 
@@ -48,7 +48,7 @@ Any options you would can pass to a `CharField` or `TextField` (i.e. blank=True,
 
 ### Settings ###
 
-To use `django-multilingualfield`, first make sure that `LANGUAGES` is set in your settings file ([`LANGUAGES` setting documentation](https://docs.djangoproject.com/en/dev/ref/settings/#languages)).
+To use `django-multilingualfield`, first make sure that [LANGUAGES](https://docs.djangoproject.com/en/dev/ref/settings/#languages) is properly defined in your settings file.
 
 ### Examples ###
 
@@ -74,7 +74,7 @@ class TestModel(models.Model):
 
 ##### What's Stored In The Database #####
 
-If value of `LANGUAGES` in your project's settings file is...
+If `LANGUAGES` is set in your project's settings file like this...
 
 ```python
 LANGUAGES = [
@@ -98,11 +98,11 @@ LANGUAGES = [
 ```
 ##### What's Served By The Application #####
 
-Even though `MultiLingualCharField` and `MultiLingualTextField` instances are stored in the database as XML they are served by the application as a python object. The above block of XML would return an instance of `multilingualfield.fields.MultiLingualText` with two attributes `en` (with a value of `u'Hello'`) and `es` (with a value of `u'Hola'`). Also, since 'English' is at the top of `settings.LANGUAGES` it is considered the 'default' language and it's value will be returned by directly accessing the attribute.
+Even though `MultiLingualCharField` and `MultiLingualTextField` instances are stored in the database as XML they are served to the application as a python object. The above block of XML would return an instance of `multilingualfield.fields.MultiLingualText` with two attributes `en` (with a value of `u'Hello'`) and `es` (with a value of `u'Hola'`). Also, since 'English' is the first language in `settings.LANGUAGES` it is considered the 'default' language and it's value will be returned by directly accessing the attribute.
 
 ##### Creating Instances in the Shell #####
 
-Let's create an instance of `TestModel` in the shell:
+Let's create an instance of our above example model (`TestModel`) in the shell:
 
 ```python
 >>> from someapp.models import TestModel
@@ -123,15 +123,15 @@ u'Hello'
 
 ##### Creating Instances in the Admin #####
 
-Both `MultiLingualCharField` and `MultiLingualTextField` are admin-ready and will create either a `TextInput` or `Textarea` field for each language listed in `settings.LANGUAGES`.
+Both `MultiLingualCharField` and `MultiLingualTextField` are admin-ready and will provide either a `TextInput` (for `MultiLingualCharField` instances) or `Textarea` (for `MultiLingualTextField` instances) field for each language listed in `settings.LANGUAGES`.
 
 #### Template Example ####
 
-`django-multilingualfield` provides a simple templatetag 'get_for_current_language' that will pull the correct translation based on user's language (as provided by the global context value 'LANGUAGE_CODE')
+`django-multilingualfield` provides a simple templatetag 'get_for_current_language' that will pull the correct translation based on user's language (as dictated by the global context value 'LANGUAGE_CODE')
 
-To use it, first make sure you have 'multilingualfield' added to `settings.INSTALLED_APPS`
+To use it, first make sure you have 'multilingualfield' added to `settings.INSTALLED_APPS` (so django can find the 'templatetags' directory).
 
-Then load it onto the template you want to use by including the following tag towards the top of your template file:
+Then load the 'multilingual_tags' module into your template by including the following tag towards the top of your template file:
 
 ```html
 {% load multilingual_tags %}

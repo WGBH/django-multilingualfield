@@ -33,7 +33,10 @@ class MultiLingualTextFieldForm(MultiValueField):
         if 'individual_widget_max_length' in kwargs:
             del kwargs['individual_widget_max_length']
         fields = [
-            CharField(label=language_verbose, max_length=self.individual_widget_max_length)
+            CharField(
+                label=language_verbose,
+                max_length=self.individual_widget_max_length
+            )
             for language_code, language_verbose in LANGUAGES
         ]
         super(MultiLingualTextFieldForm, self).__init__(tuple(fields), *args, **kwargs)
@@ -42,13 +45,11 @@ class MultiLingualTextFieldForm(MultiValueField):
         """
         Compresses a list of text into XML in the following structure:
         <languages>
-            <language>
-                <language_code>en</language_code>
-                <language_text>Hello</language_text>
+            <language code="en">
+                Hello
             </language>
-            <language>
-                <language_code>es</language_code>
-                <language_text>Hola</language_text>
+            <language code="es">
+                Hola
             </language>
         </languages>
         """
@@ -59,13 +60,10 @@ class MultiLingualTextFieldForm(MultiValueField):
         xml = etree.Element("languages")
         if data_list:
             for index, entry in enumerate(data_list):
-                language = etree.Element("language")
-                language_code = etree.SubElement(language, "language_code")
-                language_code.text = languages[index]
-                language_text = etree.SubElement(language, "language_text")
-                language_text.text = entry
+                language = etree.Element("language", code=languages[index])
+                language.text = entry
                 xml.append(language)
-        return etree.tostring(xml, encoding="UTF-8", xml_declaration=True)
+        return etree.tostring(xml, xml_declaration=True)
 
 class MultiLingualCharFieldForm(MultiLingualTextFieldForm):
     """

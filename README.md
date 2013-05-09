@@ -86,15 +86,13 @@ LANGUAGES = [
 ...then `django-multilingualfield` will store translations for a piece of text in a single 'text' db column as XML in the following structure:
 
 ```xml
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version='1.0'?>
 <languages>
-    <language>
-        <language_code>en</language_code>
-        <language_text>Hello</language_text>
+    <language code="en">
+        Hello
     </language>
-    <language>
-        <language_code>es</language_code>
-        <language_text>Hola</language_text>
+    <language code="es">
+        Hola
     </language>
 </languages>
 ```

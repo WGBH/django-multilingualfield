@@ -29,13 +29,11 @@ class MultiLingualText(object):
         """
         `xml` : An optional block of XML formatted like this:
         <languages>
-            <language>
-                <language_code>en</language_code>
-                <language_text>Hello</language_text>
+            <language code="en">
+                Hello
             </language>
-            <language>
-                <language_code>es</language_code>
-                <language_text>Hola</language_text>
+            <language code="es">
+                Hola
             </language>
         </languages>
 
@@ -60,7 +58,7 @@ class MultiLingualText(object):
                 # with the language code (i.e. 'en', 'de', 'fr') as the key
                 language_text_as_dict = {}
                 for language in xml_as_python_object.language:
-                    language_text_as_dict[unicode(language.language_code)] = unicode(language.language_text)
+                    language_text_as_dict[unicode(language.get('code'))] = unicode(language.text)
                 for language_code, language_verbose in LANGUAGES:
                     if language_code in language_text_as_dict:
                         text = language_text_as_dict[language_code]
@@ -106,40 +104,33 @@ class MultiLingualTextField(Field):
         """
         Compresses an instance of MultiLingualText into XML in the following format:
         <languages>
-            <language>
-                <language_code>en</language_code>
-                <language_text>Hello</language_text>
+            <language code="en">
+                Hello
             </language>
-            <language>
-                <language_code>es</language_code>
-                <language_text>Hola</language_text>
+            <language code="es">
+                Hola
             </language>
         </languages>
         """
         if isinstance(value, MultiLingualText):
             xml_to_return = etree.Element("languages")
             for language_code, language_verbose in LANGUAGES:
-                language = etree.Element("language")
-                language_code_xml_element = etree.SubElement(language, "language_code")
-                language_code_xml_element.text = language_code
-                language_text_xml_element = etree.SubElement(language, "language_text")
-                language_text_xml_element.text = getattr(value, language_code)
+                language = etree.Element("language", code=language_code)
+                language.text = getattr(value, language_code)
                 xml_to_return.append(language)
 
-            return etree.tostring(xml_to_return, encoding="UTF-8", xml_declaration=True)
+            return etree.tostring(xml_to_return, xml_declaration=True)
         else:
             try:
                 xml_as_python_object = objectify.fromstring(value)
             except XMLSyntaxError:
                 raise Exception("""Multi Lingual field instances must be created with either an instance of `multilingualfield.fields.MultiLingualText` or a block of XML in the following format:
 <languages>
-    <language>
-        <language_code>en</language_code>
-        <language_text>Hello</language_text>
+    <language code="en">
+        Hello
     </language>
-    <language>
-        <language_code>es</language_code>
-        <language_text>Hola</language_text>
+    <language code="es">
+        Hola
     </language>
 </languages> 
 """)

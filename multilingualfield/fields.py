@@ -126,7 +126,7 @@ class MultiLingualTextField(Field):
                 language_text_xml_element.text = getattr(value, language_code)
                 xml_to_return.append(language)
 
-            return etree.tostring(xml_to_return)
+            return etree.tostring(xml_to_return, encoding="UTF-8", xml_declaration=True)
         else:
             try:
                 xml_as_python_object = objectify.fromstring(value)

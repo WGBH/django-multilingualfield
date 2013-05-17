@@ -119,11 +119,11 @@ class MultiLingualTextField(Field):
                 language.text = getattr(value, language_code)
                 xml_to_return.append(language)
 
-            return etree.tostring(xml_to_return, xml_declaration=True)
+            return etree.tostring(xml_to_return)
         else:
             try:
                 xml_as_python_object = objectify.fromstring(value)
-            except XMLSyntaxError:
+            except etree.XMLSyntaxError:
                 raise Exception("""Multi Lingual field instances must be created with either an instance of `multilingualfield.fields.MultiLingualText` or a block of XML in the following format:
 <languages>
     <language code="en">

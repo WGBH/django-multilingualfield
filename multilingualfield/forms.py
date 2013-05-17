@@ -63,7 +63,7 @@ class MultiLingualTextFieldForm(MultiValueField):
                 language = etree.Element("language", code=languages[index])
                 language.text = entry
                 xml.append(language)
-        return etree.tostring(xml, xml_declaration=True)
+        return etree.tostring(xml)
 
 class MultiLingualCharFieldForm(MultiLingualTextFieldForm):
     """

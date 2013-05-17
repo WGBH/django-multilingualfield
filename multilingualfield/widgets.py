@@ -25,10 +25,10 @@ class TextWidgetWithLanguageLabel(object):
     def render(self, name, value, attrs=None):
         widget = super(TextWidgetWithLanguageLabel, self).render(name, value, attrs)
         widget = mark_safe(
-                    """<div style="clear:left;"><label>%s</label>%s</div>""" % (
-                                                        self.label,
-                                                        widget
-                                                    )
+                    """<div class="control-group"><label class="control-label">%s</label><div class="controls">%s</div></div>""" % (
+                                                    self.label,
+                                                    widget
+                                                )
                 )
         return widget
 

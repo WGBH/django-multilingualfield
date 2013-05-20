@@ -57,8 +57,16 @@ class MultiLingualText(object):
                 # Creating a dictionary of all the languages passed in the value XML
                 # with the language code (i.e. 'en', 'de', 'fr') as the key
                 language_text_as_dict = {}
-                for language in xml_as_python_object.language:
-                    language_text_as_dict[unicode(language.get('code'))] = unicode(language.text)
+                try:
+                    for language in xml_as_python_object.language:
+                        if language.text:
+                            language_text = unicode(language.text)
+                        else:
+                            language_text = ''
+                        language_text_as_dict[unicode(language.get('code'))] = language_text
+                except AttributeError:
+                    # Empty fields throw-off lxml and cause an AttributeError
+                    pass
                 for language_code, language_verbose in LANGUAGES:
                     if language_code in language_text_as_dict:
                         text = language_text_as_dict[language_code]

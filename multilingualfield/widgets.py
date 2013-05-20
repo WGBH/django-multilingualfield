@@ -81,7 +81,12 @@ class MultiLingualTextFieldWidget(MultiWidget):
                     # Creating a dictionary of all the languages passed in the value XML
                     # with the language code (i.e. 'en', 'de', 'fr') as the key
                     for language in xml_as_python_object.language:
-                        language_text_as_dict[unicode(language.language_code)] = unicode(language.language_text)
+                        language_text = language.language_text
+                        if not language_text:
+                            language_text_as_unicode = ''
+                        else:
+                            language_text_as_unicode = unicode(language_text)
+                        language_text_as_dict[unicode(language.language_code)] = language_text_as_unicode
         # Returning text from XML tree in order dictated by LANGUAGES
         return [
             language_text_as_dict[language_code]

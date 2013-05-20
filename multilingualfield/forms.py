@@ -1,6 +1,7 @@
 from django.forms import (
     CharField,
-    MultiValueField
+    MultiValueField,
+    ValidationError
 )
 
 from lxml import etree
@@ -32,6 +33,8 @@ class MultiLingualTextFieldForm(MultiValueField):
         self.individual_widget_max_length = kwargs.get('individual_widget_max_length', None)
         if 'individual_widget_max_length' in kwargs:
             del kwargs['individual_widget_max_length']
+        self.mandatory_field = kwargs['required']
+        kwargs['required'] = False
         fields = [
             CharField(
                 label=language_verbose,
@@ -58,9 +61,13 @@ class MultiLingualTextFieldForm(MultiValueField):
             for language_code, language_verbose in LANGUAGES
         ]
         xml = etree.Element("languages")
-        if data_list:
+        if self.mandatory_field and not data_list:
+            raise ValidationError('This multi-lingual field is required therefore you must enter text in `%s` field.' % LANGUAGES[0][1])
+        elif data_list:
             for index, entry in enumerate(data_list):
                 language = etree.Element("language", code=languages[index])
+                if index == 0 and self.mandatory_field and not entry:
+                    raise ValidationError('This multi-lingual field is required therefore you must enter text in the `%s` field.' % LANGUAGES[0][1])
                 language.text = entry
                 xml.append(language)
         return etree.tostring(xml)

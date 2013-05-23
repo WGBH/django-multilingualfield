@@ -17,7 +17,7 @@ class TextWidgetWithLanguageLabel(object):
     to a language in settings.LANGUAGES
     """
 
-    def __init__(self, language, attrs):
+    def __init__(self, attrs, language=None):
         self.label = language[1]
         self.language_code = language[0]
         super(TextWidgetWithLanguageLabel, self).__init__(attrs)
@@ -55,7 +55,7 @@ class MultiLingualTextFieldWidget(MultiWidget):
 
     def __init__(self, attrs=None):
         widgets = [
-            self.for_each_field_widget(language, attrs)
+            self.for_each_field_widget(attrs, language=language)
             for language in LANGUAGES
         ]
         super(MultiLingualTextFieldWidget, self).__init__(widgets, attrs)

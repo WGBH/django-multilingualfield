@@ -80,8 +80,7 @@ class MultiLingualText(object):
                 setattr(self, language_code, "")
 
     def __repr__(self):
-        default_language_code = get_language()
-        return getattr(self, default_language_code)
+        return getattr(self, get_language())
 
 class MultiLingualTextField(Field):
     """

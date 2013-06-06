@@ -3,6 +3,7 @@ from django.db.models import (
     SubfieldBase,
     Field
 )
+from django.utils.translation import get_language
 
 from lxml import objectify, etree
 
@@ -79,7 +80,7 @@ class MultiLingualText(object):
                 setattr(self, language_code, "")
 
     def __repr__(self):
-        default_language_code, default_language_verbose = LANGUAGES[0]
+        default_language_code = get_language()
         return getattr(self, default_language_code)
 
 class MultiLingualTextField(Field):

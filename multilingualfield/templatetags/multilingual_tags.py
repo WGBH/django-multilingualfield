@@ -1,5 +1,6 @@
 from django import template
 from django.conf import settings
+from django.utils.translation import get_language
 
 from classytags.arguments import Argument
 from classytags.core import Options
@@ -7,12 +8,11 @@ from classytags.helpers import AsTag
 
 register = template.Library()
 
-LANGUAGE_COOKIE_NAME = getattr(settings, 'LANGUAGE_COOKIE_NAME')
-
 class GetTranslationForContext(AsTag):
     """
     Retrieves the correct 'translation' for a MultiLingualText instance based
-    on the value of context['LANGUAGE_CODE']
+    on the language in the current thread (by calling
+    `django.utils.translation.get_language()`)
 
     Can be used as a standalone tag:
     {% get_for_current_language object.title %}
@@ -36,4 +36,31 @@ class GetTranslationForContext(AsTag):
             text_to_return = ''
         return text_to_return
 
+class GetTranslationByLanguageCode(AsTag):
+    """
+    Retrieves a specific 'translation' for a MultiLingualText instance.
+
+    Can be used as a standalone tag:
+    {% get_trans_by_code object.title 'en' %}
+
+    Or assigned to a context variable with as:
+    {% get_trans_by_code object.title 'en' as the_title %}
+    {{ the_title }}
+    """
+    name = 'get_trans_by_code'
+    options = Options(
+        Argument('attr', required=True),
+        Argument('language_code', required=True),
+        'as',
+        Argument('varname', required=False, resolve=False)
+    )
+
+    def get_value(self, context, attr, language_code):
+        try:
+            text_to_return = getattr(attr, language_code)
+        except AttributeError:
+            text_to_return = ''
+        return text_to_return
+
 register.tag(GetTranslationForContext)
+register.tag(GetTranslationByLanguageCode)

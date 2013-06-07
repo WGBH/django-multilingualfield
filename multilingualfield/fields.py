@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import (
     SubfieldBase,
     Field
@@ -80,7 +81,17 @@ class MultiLingualText(object):
                 setattr(self, language_code, "")
 
     def __repr__(self):
-        return getattr(self, get_language())
+        current_language = get_language()
+        try:
+            val = getattr(self, current_language)
+        except AttributeError:
+            if current_language not in [language_code for language_code, language_verbose in LANGUAGES]:
+                raise ImproperlyConfigured(
+                    "django.utils.translation.get_language returned a language code ('%(current_language)s') not included in the `LANGUAGES` setting for this project. Either add an entry for the '%(current_language)s' language code to `LANGUAGES` or change your `LANGUAGE_CODE` setting to match a language code already listed in `LANGUAGES`." % {'current_language':current_language}
+                )
+            else:
+                val = ""
+        return val
 
 class MultiLingualTextField(Field):
     """

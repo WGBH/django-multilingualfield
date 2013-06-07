@@ -50,6 +50,22 @@ Any options you would can pass to a `CharField` or `TextField` (i.e. blank=True,
 
 To use `django-multilingualfield`, first make sure that [LANGUAGES](https://docs.djangoproject.com/en/dev/ref/settings/#languages) is properly defined in your settings file.
 
+> #### NOTE ####
+> NOTE: django-multilingualfield uses `[django.utils.translation.get_language](https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.translation.get_language)` to determine which translation to serve by default.
+> 
+> If you don't have `LANGUAGE_CODE` set in your settings file it will default to 'en-us' (U.S. English). It is recommended you manually set `[LANGUAGE_CODE](https://docs.djangoproject.com/en/dev/ref/settings/#language-code)` (even if you will be choosing the default value of 'en-us') *IN ADDITION TO* adding an entry for that language code (as the _first_ language) in `[LANGUAGES](https://docs.djangoproject.com/en/dev/ref/settings/#languages)`. Here's an example:
+
+```python
+LANGUAGE_CODE = 'en'
+
+LANGUAGES = [
+    ('en', 'English'),
+    ('es', 'Espa&#241;ol') # See note belo note
+]
+```
+ > ##### NOTE #####
+ > `&#241;` is the UTF8 encoding for 'ñ'
+
 ### Examples ###
 
 #### Model Example ####
@@ -79,7 +95,7 @@ If `LANGUAGES` is set in your project's settings file like this...
 ```python
 LANGUAGES = [
     ('en', 'English'),
-    ('es', 'Spanish')
+    ('es', 'Espa&#241;ol')
 ]
 ```
 
@@ -98,20 +114,23 @@ LANGUAGES = [
 ```
 ##### What's Served By The Application #####
 
-Even though `MultiLingualCharField` and `MultiLingualTextField` instances are stored in the database as XML they are served to the application as a python object. The above block of XML would return an instance of `multilingualfield.fields.MultiLingualText` with two attributes `en` (with a value of `u'Hello'`) and `es` (with a value of `u'Hola'`). Also, since 'English' is the first language in `settings.LANGUAGES` it is considered the 'default' language and it's value will be returned by directly accessing the attribute.
+Even though `MultiLingualCharField` and `MultiLingualTextField` instances are stored in the database as XML they are served to the application as a python object. The above block of XML would return an instance of `multilingualfield.fields.MultiLingualText` with two attributes `en` (with a value of `u'Hello'`) and `es` (with a value of `u'Hola'`). The translation corresponding to the current language of the active thread (as determined by calling `[django.utils.translation.get_language()](https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.translation.get_language)`) will be returned by directly accessing the attribute.
 
 ##### Creating Instances in the Shell #####
 
-Let's create an instance of our above example model (`TestModel`) in the shell:
+Let's create an instance of our above example model (`TestModel`) in the python shell:
+
+```bash
+$ python manage.py shell
+```
 
 ```python
 >>> from someapp.models import TestModel
 >>> from multilingualfield.fields import MultiLingualText
 >>> x = TestModel()
->>> x_title = MultiLingualText()
->>> x_title.en = 'Hello'
->>> x_title.es = 'Hola'
->>> x.title = x_title
+>>> x.title = MultiLingualText()
+>>> x.title.en = 'Hello'
+>>> x.title.es = 'Hola'
 >>> x.save()
 >>> x.title.en
 u'Hello'
@@ -119,33 +138,34 @@ u'Hello'
 u'Hola'
 >>> x.title
 u'Hello'
+>>> from django.utils.translation import get_language, activate
+>>> get_language()
+'en-us'
+# NOTE: 'en-us' will ALWAYS be the current language in the active
+# thread when you load the python shell via manage.py. To learn why
+# visit: https://code.djangoproject.com/ticket/12131#comment:6
+>>> activate('en')
+>>> get_language()
+'en'
+>>> activate('es')
+>>> get_language()
+'es'
+>>> x.title
+u'Hola'
+>>> activate('en')
+>>> x.title
+'en'
 ```
 
 ##### Creating Instances in the Admin #####
 
 Both `MultiLingualCharField` and `MultiLingualTextField` are admin-ready and will provide either a `TextInput` (for `MultiLingualCharField` instances) or `Textarea` (for `MultiLingualTextField` instances) field for each language listed in `settings.LANGUAGES`.
 
-#### Template Example ####
+#### Template Usage ####
 
-`django-multilingualfield` provides a simple templatetag 'get_for_current_language' that will pull the correct translation based on user's language (as dictated by the global context value 'LANGUAGE_CODE')
+Template usage is SUPER straight forward.
 
-To use it, first make sure you have 'multilingualfield' added to `settings.INSTALLED_APPS` (so django can find the 'templatetags' directory).
+If you have `'django.middleware.locale.LocaleMiddleware'` added to your `[MIDDLEWARE_CLASSES](https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-MIDDLEWARE_CLASSES)` setting and `'django.core.context_processors.i18n'` added to your `[TEMPLATE_CONTEXT_PROCESSORS](https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-TEMPLATE_CONTEXT_PROCESSORS)` setting then `MultiLingualCharField` and `MultiLingualTextField` instances will automatically serve the correct language (based on the current user's language preference) by directly accessing their attributes.
 
-Then load the 'multilingual_tags' module into your template by including the following tag towards the top of your template file:
-
-```html
-{% load multilingual_tags %}
-```
-
-It can be used as either a standalone tag:
-
-```html
-<h1>{% get_for_current_language object.title %}</h1>
-```
-
-Or assigned to a context variable with as:
-
-```html
-{% get_for_current_language object.title as the_title %}
-<h1>{{ the_title }}</h1>
-```
+> ##### NOTE #####
+> To better understand how Django determines language preference read the aptly titled ['How Django discovers language preference'](https://docs.djangoproject.com/en/dev/topics/i18n/translation/#how-django-discovers-language-preference) section from the i18n topic page within the official Django documentation.

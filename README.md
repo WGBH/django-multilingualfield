@@ -4,6 +4,10 @@
 
 A [south](http://south.aeracode.org/)-compatible django field for storing multiple manually-written translations for the same piece of text.
 
+### Current Version ###
+
+0.2
+
 ## Requirements ##
 
 * `django-classy-tags` >= 0.3.4.1

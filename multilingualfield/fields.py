@@ -93,6 +93,9 @@ class MultiLingualText(object):
                 val = ""
         return val
 
+    def __unicode__(self):
+        return unicode(self.__repr__())
+
 class MultiLingualTextField(Field):
     """
     A django TextField for storing multiple manually-written

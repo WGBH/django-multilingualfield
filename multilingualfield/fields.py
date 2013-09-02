@@ -1,17 +1,20 @@
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files.storage import default_storage
 from django.db.models import (
     SubfieldBase,
     Field
 )
+from django.db.models.fields.files import FieldFile
 from django.utils.translation import get_language
 
 from lxml import objectify, etree
 
-from multilingualfield import LANGUAGES
-from multilingualfield.forms import (
+from . import LANGUAGES
+from .forms import (
     MultiLingualTextFieldForm,
-    MultiLingualCharFieldForm
+    MultiLingualCharFieldForm,
+    MultiLingualFileFieldForm
 )
 
 if 'south' in settings.INSTALLED_APPS:
@@ -21,6 +24,7 @@ if 'south' in settings.INSTALLED_APPS:
         [
             "^multilingualfield\.fields\.MultiLingualTextField",
             "^multilingualfield\.fields\.MultiLingualCharField",
+            "^multilingualfield\.fields\.MultiLingualFileField",
         ]
     )
 
@@ -42,7 +46,7 @@ class MultiLingualText(object):
         If the above block of XML was passed (as `xml`) to an instance of MultiLingualText
         that instance would have two attributes:
         `en` with a value of 'Hello'
-        `es` with a value of 'Hola' 
+        `es` with a value of 'Hola'
 
         If `xml` is not passed to a MultiLingualText instance an attribute for each
         language in settings.LANGUAGES will be built
@@ -104,13 +108,13 @@ class MultiLingualTextField(Field):
     description = "Stores multiple manually-written translations of the same piece of text."
 
     __metaclass__ = SubfieldBase
-    
+
     def __init__(self, *args, **kwargs):
         self.individual_widget_max_length = kwargs.get('max_length', None)
         if self.individual_widget_max_length:
             # Removing max_length so syncdb/south don't make a DB column
             # that's too small for future language additions
-            del kwargs['max_length'] 
+            del kwargs['max_length']
         super(MultiLingualTextField, self).__init__(*args, **kwargs)
 
     def db_type(self, connection):
@@ -154,7 +158,7 @@ class MultiLingualTextField(Field):
     <language code="es">
         Hola
     </language>
-</languages> 
+</languages>
 """)
             else:
                 return value
@@ -183,3 +187,46 @@ class MultiLingualCharField(MultiLingualTextField):
         }
         defaults.update(kwargs)
         return super(MultiLingualCharField, self).formfield(**defaults)
+
+class MultiLingualFileField(Field):
+    """
+    A django FileField for storing multiple files (by language)
+    in a single field.
+    """
+    description = "Stores multiple files, organized by language. An example use case: I want to store a separate PDF for this model instance for each language on the site."
+
+    __metaclass__ = SubfieldBase
+
+    def __init__(self, verbose_name=None, name=None, upload_to='', storage=None, **kwargs):
+        self.individual_widget_max_length = kwargs.get('max_length', None)
+        if self.individual_widget_max_length:
+            # Removing max_length so syncdb/south don't make a DB column
+            # that's too small for future language additions
+            del kwargs['max_length']
+
+        for arg in ('primary_key', 'unique'):
+            if arg in kwargs:
+                raise TypeError("'%s' is not a valid argument for %s." % (arg, self.__class__))
+
+        self.storage = storage or default_storage
+        self.upload_to = upload_to
+        if callable(upload_to):
+            self.generate_filename = upload_to
+
+        kwargs['max_length'] = kwargs.get('max_length', 100)
+        super(MultiLingualFileField, self).__init__(verbose_name, name, **kwargs)
+
+    def db_type(self, connection):
+        return 'text'
+
+    def formfield(self, **kwargs):
+        # This is a fairly standard way to set up some defaults
+        # while letting the caller override them.
+        defaults = {
+            'form_class': MultiLingualFileFieldForm,
+            'individual_widget_max_length':self.individual_widget_max_length,
+            'storage': self.storage,
+            'upload_to': self.upload_to
+        }
+        defaults.update(kwargs)
+        return super(MultiLingualFileField, self).formfield(**defaults)

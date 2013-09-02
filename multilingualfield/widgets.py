@@ -1,4 +1,5 @@
 from django.forms.widgets import (
+    ClearableFileInput,
     MultiWidget,
     Textarea,
     TextInput,
@@ -11,7 +12,7 @@ from lxml.etree import XMLSyntaxError
 
 from multilingualfield import LANGUAGES
 
-class TextWidgetWithLanguageLabel(object):
+class WidgetWithLanguageLabel(object):
     """
     A form widget which prepends a <label> tag corresponding
     to a language in settings.LANGUAGES
@@ -20,10 +21,10 @@ class TextWidgetWithLanguageLabel(object):
     def __init__(self, attrs, language=None):
         self.label = language[1]
         self.language_code = language[0]
-        super(TextWidgetWithLanguageLabel, self).__init__(attrs)
+        super(WidgetWithLanguageLabel, self).__init__(attrs)
 
     def render(self, name, value, attrs=None):
-        widget = super(TextWidgetWithLanguageLabel, self).render(name, value, attrs)
+        widget = super(WidgetWithLanguageLabel, self).render(name, value, attrs)
         widget = mark_safe(
                     """<div class="control-group"><label class="control-label">%s</label><div class="controls">%s</div></div>""" % (
                                                     self.label,
@@ -32,33 +33,49 @@ class TextWidgetWithLanguageLabel(object):
                 )
         return widget
 
-class TextareaWithLabel(TextWidgetWithLanguageLabel, Textarea):
+class TextareaWithLabel(WidgetWithLanguageLabel, Textarea):
     """
     A form widget which prepends a <label> tag to Textarea widget
     corresponding to a language in settings.LANGUAGES
     """
     pass
 
-class TextInputWithLabel(TextWidgetWithLanguageLabel, TextInput):
+class TextInputWithLabel(WidgetWithLanguageLabel, TextInput):
     """
     A form widget which prepends a <label> tag to a TextInput widget
     corresponding to a language in settings.LANGUAGES
     """
     pass
 
-class MultiLingualTextFieldWidget(MultiWidget):
+class ClearableFileInputWithLabel(WidgetWithLanguageLabel, ClearableFileInput):
     """
-    A widget that returns a `Textarea` widget for each language specified
+    A form widget which prepends a <label> tag to a TextInput widget
+    corresponding to a language in settings.LANGUAGES
+    """
+    pass
+
+class MultiLingualFieldBaseMixInWidget(object):
+    """
+    The 'base' multilingual field widget. Returns a widget (as specified by
+    the `for_each_field_widget` attribute) for each language specified
     in settings.LANGUAGES
     """
-    for_each_field_widget = TextareaWithLabel
+
+    for_each_field_widget = None
 
     def __init__(self, attrs=None):
         widgets = [
             self.for_each_field_widget(attrs, language=language)
             for language in LANGUAGES
         ]
-        super(MultiLingualTextFieldWidget, self).__init__(widgets, attrs)
+        super(MultiLingualFieldBaseMixInWidget, self).__init__(widgets, attrs)
+
+class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
+    """
+    A widget that returns a `Textarea` widget for each language specified
+    in settings.LANGUAGES
+    """
+    for_each_field_widget = TextareaWithLabel
 
     def decompress(self, value):
         """
@@ -100,3 +117,13 @@ class MultiLingualCharFieldWidget(MultiLingualTextFieldWidget):
     in settings.LANGUAGES
     """
     for_each_field_widget = TextInputWithLabel
+
+class MultiLingualClearableFileInputWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
+    """
+    A widget that returns a `ClearableFileInput` widget for each language specified
+    in settings.LANGUAGES
+    """
+    for_each_field_widget = ClearableFileInputWithLabel
+
+    def decompress(self, value):
+        return []

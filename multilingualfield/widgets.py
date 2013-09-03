@@ -1,10 +1,14 @@
 from django.forms.widgets import (
+    CheckboxInput,
     ClearableFileInput,
+    HiddenInput,
     MultiWidget,
     Textarea,
     TextInput,
     Widget
 )
+from django.utils.encoding import force_text
+from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import mark_safe
 
 from lxml import objectify
@@ -48,12 +52,83 @@ class TextInputWithLabel(WidgetWithLanguageLabel, TextInput):
     """
     pass
 
-class ClearableFileInputWithLabel(WidgetWithLanguageLabel, ClearableFileInput):
+class CustomClearableFileInput(ClearableFileInput):
+    """
+    Identical to `ClearableFileInput` only it includes an extra
+    hidden field (`initial_file`) which passes along the existing
+    file name of the file associated with this field (if one exists)
+    """
+    template_with_initial = '%(initial_file)s %(initial_text)s: %(initial)s %(clear_template)s<br />%(input_text)s: %(input)s'
+
+    def initial_filename_name(self, name):
+        """
+        Given the name of the hidden initial_text input, return the HTML id for it.
+        """
+        return name + '-initial'
+
+    def render(self, name, value, attrs=None):
+        substitutions = {
+            'initial_text': self.initial_text,
+            'input_text': self.input_text,
+            'clear_template': '',
+            'clear_checkbox_label': self.clear_checkbox_label,
+        }
+        template = '%(input)s'
+        substitutions['input'] = super(ClearableFileInput, self).render(name, value, attrs)
+
+        if value and hasattr(value, "url"):
+            template = self.template_with_initial
+            substitutions['initial'] = format_html('<a href="{0}">{1}</a>',
+                                                   value.url,
+                                                   force_text(value))
+            initial_filename_name = self.initial_filename_name(name)
+            substitutions['initial_file'] = HiddenInput().render(initial_filename_name, value, attrs={'id': initial_filename_name})
+            if not self.is_required:
+                checkbox_name = self.clear_checkbox_name(name)
+                checkbox_id = self.clear_checkbox_id(checkbox_name)
+                substitutions['clear_checkbox_name'] = conditional_escape(checkbox_name)
+                substitutions['clear_checkbox_id'] = conditional_escape(checkbox_id)
+                substitutions['clear'] = CheckboxInput().render(checkbox_name, False, attrs={'id': checkbox_id})
+                substitutions['clear_template'] = self.template_with_clear % substitutions
+
+        return mark_safe(template % substitutions)
+
+    def value_from_datadict(self, data, files, name):
+        upload = super(CustomClearableFileInput, self).value_from_datadict(data, files, name)
+
+        if not self.is_required and CheckboxInput().value_from_datadict(
+            data, files, self.clear_checkbox_name(name)):
+            if upload:
+                # If the user contradicts themselves (uploads a new file AND
+                # checks the "clear" checkbox), we return a unique marker
+                # object that FileField will turn into a ValidationError.
+                return FILE_INPUT_CONTRADICTION
+            # False signals to clear any existing value, as opposed to just None
+            return False
+        # If no file has been uploaded...
+        if upload is None:
+            # ...figure out the name of the
+            # hidden field which holds the existant filename (if one exists)
+            initial_filename = self.initial_filename_name(name)
+            if data.get(initial_filename, None):
+                # If that hidden field is in the widget, pass the
+                # file path of that file on
+                return data.get(initial_filename)
+            else:
+                # Otherwise return None
+                return None
+        # Otherwise...
+        else:
+            # Return the uploaded file.
+            return upload
+
+
+class ClearableFileInputWithLabel(WidgetWithLanguageLabel, CustomClearableFileInput):
     """
     A form widget which prepends a <label> tag to a TextInput widget
     corresponding to a language in settings.LANGUAGES
     """
-    pass
+
 
 class MultiLingualFieldBaseMixInWidget(object):
     """
@@ -130,4 +205,19 @@ class MultiLingualClearableFileInputWidget(MultiLingualFieldBaseMixInWidget, Mul
     for_each_field_widget = ClearableFileInputWithLabel
 
     def decompress(self, value):
-        return []
+        """
+        Receives an instance of `MultiLingualFile` and returns a list of
+        broken-out-files corresponding in position to the current
+        ordering of settings.LANGUAGES
+        """
+
+        language_text_as_dict = {}
+        if value:
+            for language_code, language_verbose in LANGUAGES:
+                language_text_as_dict[language_code] = getattr(value, language_code)
+        # Returning text from XML tree in order dictated by LANGUAGES
+        return [
+            language_text_as_dict[language_code]
+            if language_code in language_text_as_dict else None
+            for language_code, language_verbose in LANGUAGES
+        ]

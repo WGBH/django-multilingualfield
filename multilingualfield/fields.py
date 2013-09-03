@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models import (
@@ -8,11 +10,12 @@ from django.db.models import (
 from lxml import objectify, etree
 
 from . import LANGUAGES
-from .datastructures import MultiLingualText
+from .datastructures import MultiLingualText, MultiLingualFile
 from .forms import (
     MultiLingualTextFieldForm,
     MultiLingualCharFieldForm,
-    MultiLingualFileFieldForm
+    MultiLingualFileFieldForm,
+    FILE_FIELD_CLASSES
 )
 
 if 'south' in settings.INSTALLED_APPS:
@@ -155,14 +158,74 @@ class MultiLingualFileField(Field):
     def db_type(self, connection):
         return 'text'
 
+    def to_python(self, value):
+        """
+        Takes XML data from the database and converts it into an instance
+        of MultiLingualFile
+        """
+        # Need to provide
+        # self.instance = instance
+        # self.field = field
+        if isinstance(value, MultiLingualFile):
+            return value
+        elif isinstance(value, list):
+            languages = [
+                language_code
+                for language_code, language_verbose in LANGUAGES
+            ]
+            xml_block = etree.Element("languages")
+            for index, this_file in enumerate(value):
+                language = etree.Element("language", code=languages[index])
+                # If `this_file` exists and is a 'File'
+                if this_file and (
+                        type(this_file) in FILE_FIELD_CLASSES
+                    ):
+                    # Figure out 'intended' file name and path
+                    file_name_and_path = os.path.join(self.upload_to, this_file.name)
+                    # Create file using this field's storage (as provided by the parent fields 'formfield' method)
+                    created_file_name = self.storage.save(file_name_and_path, this_file)
+                    # Finally, assign the created file name to the XML block
+                    language.text = created_file_name
+                # Otherwise...
+                else:
+                    # ...if it's a bool it means the field is being cleared
+                    if isinstance(this_file, bool):
+                        language.text = ''
+                    # Otherwise it's a filename and path.
+                    else:
+                        language.text = this_file
+                xml_block.append(language)
+            xml = etree.tostring(xml_block)
+        else:
+            xml = value
+        return MultiLingualFile(xml=value, storage=self.storage)
+
+    def get_prep_value(self, value):
+        """
+        Converts an instance of MultiLingualFile into what will ultimately
+        be stored in the database, a block of XML in the following format:
+        <languages>
+            <language code="en">
+                Hello
+            </language>
+            <language code="es">
+                Hola
+            </language>
+        </languages>
+        """
+        # Checks to see if this is a `MultiLingualFile` instance
+        if isinstance(value, MultiLingualFile):
+            xml = value.as_xml()
+        else:
+            xml = value
+        return xml
+
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults
         # while letting the caller override them.
         defaults = {
             'form_class': MultiLingualFileFieldForm,
-            'individual_widget_max_length':self.individual_widget_max_length,
-            'storage': self.storage,
-            'upload_to': self.upload_to
+            'individual_widget_max_length':self.individual_widget_max_length
         }
         defaults.update(kwargs)
         return super(MultiLingualFileField, self).formfield(**defaults)

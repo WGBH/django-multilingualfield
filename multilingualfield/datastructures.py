@@ -1,6 +1,8 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import get_language
 
+from lxml import etree
+
 from . import LANGUAGES
 from .utils import construct_MultiLingualText_from_xml
 
@@ -50,3 +52,16 @@ class MultiLingualText(object):
 
     def __unicode__(self):
         return unicode(self.__repr__())
+
+    def as_xml(self):
+        """
+        Returns this instance as XML.
+        """
+        xml_to_return = etree.Element("languages")
+        for key, value in self.__dict__.iteritems():
+            if key != 'languages':
+                language = etree.Element("language", code=key)
+                language.text = value
+                xml_to_return.append(language)
+
+        return etree.tostring(xml_to_return)

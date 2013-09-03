@@ -10,8 +10,8 @@ from django.forms import (
 
 from lxml import etree
 
-from multilingualfield import LANGUAGES
-from multilingualfield.widgets import (
+from . import LANGUAGES
+from .widgets import (
     MultiLingualCharFieldWidget,
     MultiLingualTextFieldWidget,
     MultiLingualClearableFileInputWidget

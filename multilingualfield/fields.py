@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import default_storage
 from django.db.models import (
     SubfieldBase,
@@ -11,6 +10,7 @@ from django.utils.translation import get_language
 from lxml import objectify, etree
 
 from . import LANGUAGES
+from .datastructures import MultiLingualText
 from .forms import (
     MultiLingualTextFieldForm,
     MultiLingualCharFieldForm,
@@ -27,78 +27,6 @@ if 'south' in settings.INSTALLED_APPS:
             "^multilingualfield\.fields\.MultiLingualFileField",
         ]
     )
-
-class MultiLingualText(object):
-    """A class that aggregates manually-written translations for the same piece of text."""
-
-    def __init__(self, xml=None):
-        """
-        `xml` : An optional block of XML formatted like this:
-        <languages>
-            <language code="en">
-                Hello
-            </language>
-            <language code="es">
-                Hola
-            </language>
-        </languages>
-
-        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText
-        that instance would have two attributes:
-        `en` with a value of 'Hello'
-        `es` with a value of 'Hola'
-
-        If `xml` is not passed to a MultiLingualText instance an attribute for each
-        language in settings.LANGUAGES will be built
-        """
-        self.languages = LANGUAGES
-        # Converting XML (passed-in as `xml`) to a python object via lxml
-        if xml:
-            # If xml is passed in, build out attributes accordingly.
-            try:
-                xml_as_python_object = objectify.fromstring(xml)
-            except etree.XMLSyntaxError:
-                raise Exception("Invalid XML was passed to MultiLingualText")
-            else:
-                # Creating a dictionary of all the languages passed in the value XML
-                # with the language code (i.e. 'en', 'de', 'fr') as the key
-                language_text_as_dict = {}
-                try:
-                    for language in xml_as_python_object.language:
-                        if language.text:
-                            language_text = unicode(language.text)
-                        else:
-                            language_text = ''
-                        language_text_as_dict[unicode(language.get('code'))] = language_text
-                except AttributeError:
-                    # Empty fields throw-off lxml and cause an AttributeError
-                    pass
-                for language_code, language_verbose in LANGUAGES:
-                    if language_code in language_text_as_dict:
-                        text = language_text_as_dict[language_code]
-                    else:
-                        text = ""
-
-                    setattr(self, language_code, text)
-        else:
-            for language_code, language_verbose in LANGUAGES:
-                setattr(self, language_code, "")
-
-    def __repr__(self):
-        current_language = get_language()
-        try:
-            val = getattr(self, current_language)
-        except AttributeError:
-            if current_language not in [language_code for language_code, language_verbose in LANGUAGES]:
-                raise ImproperlyConfigured(
-                    "django.utils.translation.get_language returned a language code ('%(current_language)s') not included in the `LANGUAGES` setting for this project. Either add an entry for the '%(current_language)s' language code to `LANGUAGES` or change your `LANGUAGE_CODE` setting to match a language code already listed in `LANGUAGES`." % {'current_language':current_language}
-                )
-            else:
-                val = ""
-        return val
-
-    def __unicode__(self):
-        return unicode(self.__repr__())
 
 class MultiLingualTextField(Field):
     """

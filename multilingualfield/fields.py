@@ -4,8 +4,6 @@ from django.db.models import (
     SubfieldBase,
     Field
 )
-from django.db.models.fields.files import FieldFile
-from django.utils.translation import get_language
 
 from lxml import objectify, etree
 
@@ -49,14 +47,24 @@ class MultiLingualTextField(Field):
         return 'text'
 
     def to_python(self, value):
+        """
+        Takes XML data from the database and converts it into an instance
+        of MultiLingualText
+        """
+        # Obviously MultiLingualText instances aren't stored in the database
+        # but this conditional is there 'just-in-case' since a seralizer
+        # might be utilized in the future for this field.
         if isinstance(value, MultiLingualText):
             return value
         else:
-            return MultiLingualText(value)
+            # Use the XML stored in the database to create a
+            # MultiLingualText instance
+            return MultiLingualText(xml=value)
 
     def get_prep_value(self, value):
         """
-        Compresses an instance of MultiLingualText into XML in the following format:
+        Converts an instance of MultiLingualText into what will ultimately
+        be stored in the database, a block of XML in the following format:
         <languages>
             <language code="en">
                 Hello
@@ -66,18 +74,16 @@ class MultiLingualTextField(Field):
             </language>
         </languages>
         """
+        # Checks to see if this is a `MultiLingualText` instance
         if isinstance(value, MultiLingualText):
-            xml_to_return = etree.Element("languages")
-            for language_code, language_verbose in LANGUAGES:
-                language = etree.Element("language", code=language_code)
-                language.text = getattr(value, language_code)
-                xml_to_return.append(language)
-
-            return etree.tostring(xml_to_return)
+            # If it is, convert the instance to XML
+            xml = value.as_xml()
         else:
+            # Otherwise check to see if it is a valid block of XML
             try:
                 xml_as_python_object = objectify.fromstring(value)
             except etree.XMLSyntaxError:
+                # If not, raise an Exception
                 raise Exception("""Multi Lingual field instances must be created with either an instance of `multilingualfield.fields.MultiLingualText` or a block of XML in the following format:
 <languages>
     <language code="en">
@@ -89,7 +95,9 @@ class MultiLingualTextField(Field):
 </languages>
 """)
             else:
-                return value
+                # Otherwise set `xml` to `value`
+                xml = value
+        return xml
 
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults

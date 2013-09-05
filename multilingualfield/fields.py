@@ -151,8 +151,6 @@ class MultiLingualFileField(Field):
         self.upload_to = upload_to
         if callable(upload_to):
             self.generate_filename = upload_to
-
-        kwargs['max_length'] = kwargs.get('max_length', 100)
         super(MultiLingualFileField, self).__init__(verbose_name, name, **kwargs)
 
     def db_type(self, connection):

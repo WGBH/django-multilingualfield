@@ -163,9 +163,6 @@ class MultiLingualFileField(Field):
         Takes XML data from the database and converts it into an instance
         of MultiLingualFile
         """
-        # Need to provide
-        # self.instance = instance
-        # self.field = field
         if isinstance(value, MultiLingualFile):
             return value
         elif isinstance(value, list):
@@ -198,7 +195,7 @@ class MultiLingualFileField(Field):
             xml = etree.tostring(xml_block)
         else:
             xml = value
-        return MultiLingualFile(xml=value, storage=self.storage)
+        return MultiLingualFile(xml=xml, storage=self.storage)
 
     def get_prep_value(self, value):
         """

@@ -174,10 +174,7 @@ class MultiLingualFileFieldForm(MultiValueField):
         if self.mandatory_field and not data_list:
             raise ValidationError('This multi-lingual field is required therefore you must enter text in `%s` field.' % LANGUAGES[0][1])
         elif data_list:
-            to_return = []
             for index, this_file in enumerate(data_list):
                 if index == 0 and self.mandatory_field and not this_file and not type(this_file) in FILE_FIELD_CLASSES:
                         raise ValidationError('This multi-lingual field is required therefore you must enter text in the `%s` field.' % LANGUAGES[0][1])
-                else:
-                    to_return.append(this_file)
-        return to_return
+        return data_list

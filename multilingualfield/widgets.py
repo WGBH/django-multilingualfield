@@ -30,12 +30,9 @@ class WidgetWithLanguageLabel(object):
 
     def render(self, name, value, attrs=None):
         widget = super(WidgetWithLanguageLabel, self).render(name, value, attrs)
-        widget = mark_safe(
-                    """<div class="control-group"><label class="control-label">%s</label><div class="controls">%s</div></div>""" % (
-                                                    self.label,
-                                                    widget
-                                                )
-                )
+        # Add a class depending of the language_code, maybe useful for some jQuery functions like toggle() ;-)
+        widget = mark_safe('<div class="control-group language_%s"><label class="control-label">%s</label>'
+                           '<div class="controls">%s</div></div>' % (self.language_code, self.label, widget))
         return widget
 
 class TextareaWithLabel(WidgetWithLanguageLabel, Textarea):
@@ -78,9 +75,7 @@ class CustomClearableFileInput(ClearableFileInput):
 
         if value and hasattr(value, "url"):
             template = self.template_with_initial
-            substitutions['initial'] = format_html('<a href="{0}">{1}</a>',
-                                                   value.url,
-                                                   force_text(value))
+            substitutions['initial'] = format_html('<a href="{0}">{1}</a>', value.url, force_text(value))
             initial_filename_name = self.initial_filename_name(name)
             substitutions['initial_file'] = HiddenInput().render(initial_filename_name, value, attrs={'id': initial_filename_name})
             if not self.is_required:

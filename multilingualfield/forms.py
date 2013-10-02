@@ -9,11 +9,11 @@ from django.forms import (
     ValidationError,
     FileField
 )
-from django.forms.widgets import CheckboxInput, FILE_INPUT_CONTRADICTION
+from django.forms.widgets import FILE_INPUT_CONTRADICTION
 
 from lxml import etree
 
-from . import LANGUAGES
+from . import LANGUAGES, REQUIRED_ERROR
 from .widgets import (
     MultiLingualCharFieldWidget,
     MultiLingualTextFieldWidget,
@@ -76,12 +76,12 @@ class MultiLingualTextFieldForm(MultiValueField):
         ]
         xml = etree.Element("languages")
         if self.mandatory_field and not data_list:
-            raise ValidationError('This multi-lingual field is required therefore you must enter text in `%s` field.' % LANGUAGES[0][1])
+            raise ValidationError(REQUIRED_ERROR % LANGUAGES[0][1])
         elif data_list:
             for index, entry in enumerate(data_list):
                 language = etree.Element("language", code=languages[index])
                 if index == 0 and self.mandatory_field and not entry:
-                    raise ValidationError('This multi-lingual field is required therefore you must enter text in the `%s` field.' % LANGUAGES[0][1])
+                    raise ValidationError(REQUIRED_ERROR % LANGUAGES[0][1])
                 language.text = entry
                 xml.append(language)
         return etree.tostring(xml)
@@ -166,15 +166,12 @@ class MultiLingualFileFieldForm(MultiValueField):
             </language>
         </languages>
         """
-        languages = [
-            language_code
-            for language_code, language_verbose in LANGUAGES
-        ]
-        xml = etree.Element("languages")
+        #languages = [language_code for language_code, language_verbose in LANGUAGES]
+        #xml = etree.Element("languages")
         if self.mandatory_field and not data_list:
-            raise ValidationError('This multi-lingual field is required therefore you must enter text in `%s` field.' % LANGUAGES[0][1])
+            raise ValidationError(REQUIRED_ERROR % LANGUAGES[0][1])
         elif data_list:
             for index, this_file in enumerate(data_list):
                 if index == 0 and self.mandatory_field and not this_file and not type(this_file) in FILE_FIELD_CLASSES:
-                        raise ValidationError('This multi-lingual field is required therefore you must enter text in the `%s` field.' % LANGUAGES[0][1])
+                        raise ValidationError(REQUIRED_ERROR % LANGUAGES[0][1])
         return data_list

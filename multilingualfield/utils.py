@@ -1,8 +1,8 @@
-from django.core.files.storage import default_storage
 
+from django.core.files.storage import default_storage
 from lxml import objectify, etree
 
-from . import LANGUAGES
+from . import LANGUAGES, INVALID_XML_ERROR
 
 def construct_MultiLingualText_from_xml(xml, instance):
     """
@@ -27,7 +27,7 @@ def construct_MultiLingualText_from_xml(xml, instance):
     try:
         xml_as_python_object = objectify.fromstring(xml)
     except etree.XMLSyntaxError:
-        raise Exception("Invalid XML was passed to MultiLingualText")
+        raise Exception(INVALID_XML_ERROR + ' MultiLingualText')
     else:
         # Creating a dictionary of all the languages passed in the value XML
         # with the language code (i.e. 'en', 'de', 'fr') as the key
@@ -74,7 +74,7 @@ def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
     try:
         xml_as_python_object = objectify.fromstring(xml)
     except etree.XMLSyntaxError:
-        raise Exception("Invalid XML was passed to MultiLingualText")
+        raise Exception(INVALID_XML_ERROR + ' MultiLingualText')
     else:
         # Creating a dictionary of all the languages passed in the value XML
         # with the language code (i.e. 'en', 'de', 'fr') as the key

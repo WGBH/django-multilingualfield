@@ -2,14 +2,11 @@ import os
 
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db.models import (
-    SubfieldBase,
-    Field
-)
+from django.db.models import SubfieldBase, Field
 
 from lxml import objectify, etree
 
-from . import LANGUAGES
+from . import LANGUAGES, INVALID_ARGUMENT_ERROR, XML_SYNTAX_ERROR
 from .datastructures import MultiLingualText, MultiLingualFile
 from .forms import (
     MultiLingualTextFieldForm,
@@ -87,8 +84,8 @@ class MultiLingualTextField(Field):
                 xml_as_python_object = objectify.fromstring(value)
             except etree.XMLSyntaxError:
                 # If not, raise an Exception
-                raise Exception("""Multi Lingual field instances must be created with either an instance of `multilingualfield.fields.MultiLingualText` or a block of XML in the following format:
-<languages>
+                raise Exception(XML_SYNTAX_ERROR +
+"""<languages>
     <language code="en">
         Hello
     </language>
@@ -107,7 +104,7 @@ class MultiLingualTextField(Field):
         # while letting the caller override them.
         defaults = {
             'form_class': MultiLingualTextFieldForm,
-            'individual_widget_max_length':self.individual_widget_max_length
+            'individual_widget_max_length': self.individual_widget_max_length
         }
         defaults.update(kwargs)
         return super(MultiLingualTextField, self).formfield(**defaults)
@@ -122,7 +119,7 @@ class MultiLingualCharField(MultiLingualTextField):
         # while letting the caller override them.
         defaults = {
             'form_class': MultiLingualCharFieldForm,
-            'individual_widget_max_length':self.individual_widget_max_length
+            'individual_widget_max_length': self.individual_widget_max_length
         }
         defaults.update(kwargs)
         return super(MultiLingualCharField, self).formfield(**defaults)
@@ -145,7 +142,7 @@ class MultiLingualFileField(Field):
 
         for arg in ('primary_key', 'unique'):
             if arg in kwargs:
-                raise TypeError("'%s' is not a valid argument for %s." % (arg, self.__class__))
+                raise TypeError(INVALID_ARGUMENT_ERROR % (arg, self.__class__))
 
         self.storage = storage or default_storage
         self.upload_to = upload_to
@@ -220,7 +217,7 @@ class MultiLingualFileField(Field):
         # while letting the caller override them.
         defaults = {
             'form_class': MultiLingualFileFieldForm,
-            'individual_widget_max_length':self.individual_widget_max_length
+            'individual_widget_max_length': self.individual_widget_max_length
         }
         defaults.update(kwargs)
         return super(MultiLingualFileField, self).formfield(**defaults)

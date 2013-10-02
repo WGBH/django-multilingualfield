@@ -4,7 +4,7 @@ from django.utils.translation import get_language
 
 from lxml import objectify, etree
 
-from . import LANGUAGES
+from . import LANGUAGES, INVALID_XML_ERROR, UNKNOWN_LANGUAGE_CODE_ERROR
 from .utils import construct_MultiLingualText_from_xml
 
 class MultiLingualText(object):
@@ -44,9 +44,7 @@ class MultiLingualText(object):
             val = getattr(self, current_language)
         except AttributeError:
             if current_language not in [language_code for language_code, language_verbose in LANGUAGES]:
-                raise ImproperlyConfigured(
-                    "django.utils.translation.get_language returned a language code ('%(current_language)s') not included in the `LANGUAGES` setting for this project. Either add an entry for the '%(current_language)s' language code to `LANGUAGES` or change your `LANGUAGE_CODE` setting to match a language code already listed in `LANGUAGES`." % {'current_language':current_language}
-                )
+                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR % {'current_language': current_language})
             else:
                 val = ""
         return val
@@ -157,7 +155,7 @@ class MultiLingualFile(object):
             try:
                 xml_as_python_object = objectify.fromstring(xml)
             except etree.XMLSyntaxError:
-                raise Exception("Invalid XML was passed to MultiLingualText")
+                raise Exception(INVALID_XML_ERROR + ' MultiLingualText')
             else:
                 # Creating a dictionary of all the languages passed in the value XML
                 # with the language code (i.e. 'en', 'de', 'fr') as the key
@@ -189,9 +187,7 @@ class MultiLingualFile(object):
             val = getattr(self, current_language)
         except AttributeError:
             if current_language not in [language_code for language_code, language_verbose in LANGUAGES]:
-                raise ImproperlyConfigured(
-                    "django.utils.translation.get_language returned a language code ('%(current_language)s') not included in the `LANGUAGES` setting for this project. Either add an entry for the '%(current_language)s' language code to `LANGUAGES` or change your `LANGUAGE_CODE` setting to match a language code already listed in `LANGUAGES`." % {'current_language':current_language}
-                )
+                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR % {'current_language':current_language})
             else:
                 val = None
         return val

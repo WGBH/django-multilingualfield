@@ -14,7 +14,7 @@ from django.utils.safestring import mark_safe
 from lxml import objectify
 from lxml.etree import XMLSyntaxError
 
-from . import LANGUAGES
+from . import LANGUAGES, INVALID_XML_ERROR
 from .datastructures import MultiLingualText
 
 class WidgetWithLanguageLabel(object):
@@ -172,7 +172,7 @@ class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget)
                 try:
                     xml_as_python_object = objectify.fromstring(value)
                 except XMLSyntaxError:
-                    raise Exception("Invalid XML was passed to MultiLingualTextFieldWidget.decompress()!")
+                    raise Exception(INVALID_XML_ERROR + ' MultiLingualTextFieldWidget.decompress()!')
                 else:
                     # Creating a dictionary of all the languages passed in the value XML
                     # with the language code (i.e. 'en', 'de', 'fr') as the key

@@ -18,10 +18,7 @@ from . import LANGUAGES, INVALID_XML_ERROR
 from .datastructures import MultiLingualText
 
 class WidgetWithLanguageLabel(object):
-    """
-    A form widget which prepends a <label> tag corresponding
-    to a language in settings.LANGUAGES
-    """
+    u"""A form widget which prepends a <label> tag corresponding to a language in settings.LANGUAGES."""
 
     def __init__(self, attrs, language=None):
         self.label = language[1]
@@ -36,31 +33,26 @@ class WidgetWithLanguageLabel(object):
         return widget
 
 class TextareaWithLabel(WidgetWithLanguageLabel, Textarea):
-    """
-    A form widget which prepends a <label> tag to Textarea widget
-    corresponding to a language in settings.LANGUAGES
+    u"""
+    A form widget which prepends a <label> tag to Textarea widget corresponding to a language in settings.LANGUAGES.
     """
     pass
 
 class TextInputWithLabel(WidgetWithLanguageLabel, TextInput):
-    """
-    A form widget which prepends a <label> tag to a TextInput widget
-    corresponding to a language in settings.LANGUAGES
+    u"""
+    A form widget which prepends a <label> tag to a TextInput widget corresponding to a language in settings.LANGUAGES.
     """
     pass
 
 class CustomClearableFileInput(ClearableFileInput):
-    """
-    Identical to `ClearableFileInput` only it includes an extra
-    hidden field (`initial_file`) which passes along the existing
-    file name of the file associated with this field (if one exists)
+    u"""
+    Identical to `ClearableFileInput` only it includes an extra hidden field (`initial_file`) which passes along the
+    existing file name of the file associated with this field (if one exists).
     """
     template_with_initial = '%(initial_file)s %(initial_text)s: %(initial)s %(clear_template)s<br />%(input_text)s: %(input)s'
 
     def initial_filename_name(self, name):
-        """
-        Given the name of the hidden initial_text input, return the HTML id for it.
-        """
+        u"""Given the name of the hidden initial_text input, return the HTML id for it."""
         return name + '-initial'
 
     def render(self, name, value, attrs=None):
@@ -119,17 +111,15 @@ class CustomClearableFileInput(ClearableFileInput):
 
 
 class ClearableFileInputWithLabel(WidgetWithLanguageLabel, CustomClearableFileInput):
-    """
-    A form widget which prepends a <label> tag to a TextInput widget
-    corresponding to a language in settings.LANGUAGES
+    u"""
+    A form widget which prepends a <label> tag to a TextInput widget corresponding to a language in settings.LANGUAGES.
     """
 
 
 class MultiLingualFieldBaseMixInWidget(object):
-    """
-    The 'base' multilingual field widget. Returns a widget (as specified by
-    the `for_each_field_widget` attribute) for each language specified
-    in settings.LANGUAGES
+    u"""
+    The 'base' multilingual field widget. Returns a widget (as specified by the `for_each_field_widget` attribute) for
+    each language specified in settings.LANGUAGES.
     """
 
     for_each_field_widget = None
@@ -142,17 +132,15 @@ class MultiLingualFieldBaseMixInWidget(object):
         super(MultiLingualFieldBaseMixInWidget, self).__init__(widgets, attrs)
 
 class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
-    """
-    A widget that returns a `Textarea` widget for each language specified
-    in settings.LANGUAGES
+    u"""
+    A widget that returns a `Textarea` widget for each language specified in settings.LANGUAGES.
     """
     for_each_field_widget = TextareaWithLabel
 
     def decompress(self, value):
-        """
-        Receives an instance of `MultiLingualText` (or a properly-formatted
-        block of XML) and returns a list of values corresponding in position
-        to the current ordering of settings.LANGUAGES
+        u"""
+        Receives an instance of `MultiLingualText` (or a properly-formatted block of XML) and returns a list of values
+        corresponding in position to the current ordering of settings.LANGUAGES.
         """
         language_text_as_dict = {}
         if value:
@@ -186,24 +174,19 @@ class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget)
         ]
 
 class MultiLingualCharFieldWidget(MultiLingualTextFieldWidget):
-    """
-    A widget that returns a `TextInput` widget for each language specified
-    in settings.LANGUAGES
-    """
+    u"""A widget that returns a `TextInput` widget for each language specified in settings.LANGUAGES."""
     for_each_field_widget = TextInputWithLabel
 
 class MultiLingualClearableFileInputWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
-    """
-    A widget that returns a `ClearableFileInput` widget for each language specified
-    in settings.LANGUAGES
+    u"""
+    A widget that returns a `ClearableFileInput` widget for each language specified in settings.LANGUAGES.
     """
     for_each_field_widget = ClearableFileInputWithLabel
 
     def decompress(self, value):
-        """
-        Receives an instance of `MultiLingualFile` and returns a list of
-        broken-out-files corresponding in position to the current
-        ordering of settings.LANGUAGES
+        u"""
+        Receives an instance of `MultiLingualFile` and returns a list of broken-out-files corresponding in position to
+        the current ordering of settings.LANGUAGES.
         """
 
         language_text_as_dict = {}

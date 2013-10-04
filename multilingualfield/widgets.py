@@ -17,6 +17,7 @@ from lxml.etree import XMLSyntaxError
 from . import LANGUAGES, INVALID_XML_ERROR
 from .datastructures import MultiLingualText
 
+
 class WidgetWithLanguageLabel(object):
     u"""A form widget which prepends a <label> tag corresponding to a language in settings.LANGUAGES."""
 
@@ -112,6 +113,7 @@ class MultiLingualFieldBaseMixInWidget(object):
     def __init__(self, attrs=None):
         widgets = [self.for_each_field_widget(attrs, language=language) for language in LANGUAGES]
         super(MultiLingualFieldBaseMixInWidget, self).__init__(widgets, attrs)
+
 
 class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
     u"""A widget that returns a `Textarea` widget for each language specified in settings.LANGUAGES."""

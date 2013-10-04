@@ -31,24 +31,15 @@ def construct_MultiLingualText_from_xml(xml, instance):
     else:
         # Creating a dictionary of all the languages passed in the value XML
         # with the language code (i.e. 'en', 'de', 'fr') as the key
-        language_text_as_dict = {}
+        text_dict = {}
         try:
-            for language in xml_as_python_object.language:
-                if language.text:
-                    language_text = unicode(language.text)
-                else:
-                    language_text = ''
-                language_text_as_dict[unicode(language.get('code'))] = language_text
+            text_dict = {unicode(l.get(u'code')): unicode(l.text or u'') for l in xml_as_python_object.language}
         except AttributeError:
             # Empty fields throw-off lxml and cause an AttributeError
             pass
-        for language_code, language_verbose in LANGUAGES:
-            if language_code in language_text_as_dict:
-                text = language_text_as_dict[language_code]
-            else:
-                text = ""
+        for code, verbose in LANGUAGES:
+            setattr(instance, code, text_dict.get(code, u''))
 
-            setattr(instance, language_code, text)
 
 def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
     u"""
@@ -77,21 +68,12 @@ def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
     else:
         # Creating a dictionary of all the languages passed in the value XML
         # with the language code (i.e. 'en', 'de', 'fr') as the key
-        language_text_as_dict = {}
+        text_dict = {}
         try:
-            for language in xml_as_python_object.language:
-                if language.text:
-                    language_text = unicode(language.text)
-                else:
-                    language_text = ''
-                language_text_as_dict[unicode(language.get('code'))] = language_text
+            text_dict = {unicode(l.get('code')): unicode(l.text or u'') for l in xml_as_python_object.language}
         except AttributeError:
             # Empty fields throw-off lxml and cause an AttributeError
             pass
-        for language_code, language_verbose in LANGUAGES:
-            if language_code in language_text_as_dict:
-                name = language_text_as_dict[language_code]
-                f = MultiLingualFieldFile(storage=storage, name=name)
-            else:
-                f = None
-            setattr(instance, language_code, f)
+        for code, verbose in LANGUAGES:
+            setattr(instance, code, MultiLingualFieldFile(storage=storage, name=text_dict[code])
+                                    if code in text_dict else None)

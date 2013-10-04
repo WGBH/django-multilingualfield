@@ -27,10 +27,7 @@ if 'south' in settings.INSTALLED_APPS:
     )
 
 class MultiLingualTextField(Field):
-    """
-    A django TextField for storing multiple manually-written
-    translations of the same piece of text.
-    """
+    u"""A django TextField for storing multiple manually-written translations of the same piece of text."""
     description = "Stores multiple manually-written translations of the same piece of text."
 
     __metaclass__ = SubfieldBase
@@ -47,10 +44,7 @@ class MultiLingualTextField(Field):
         return 'text'
 
     def to_python(self, value):
-        """
-        Takes XML data from the database and converts it into an instance
-        of MultiLingualText
-        """
+        u"""Takes XML data from the database and converts it into an instance of MultiLingualText."""
         # Obviously MultiLingualText instances aren't stored in the database
         # but this conditional is there 'just-in-case' since a seralizer
         # might be utilized in the future for this field.
@@ -62,9 +56,9 @@ class MultiLingualTextField(Field):
             return MultiLingualText(xml=value)
 
     def get_prep_value(self, value):
-        """
-        Converts an instance of MultiLingualText into what will ultimately
-        be stored in the database, a block of XML in the following format:
+        u"""
+        Converts an instance of MultiLingualText into what will ultimately be stored in the database, a block of XML in
+        the following format:
         <languages>
             <language code="en">
                 Hello
@@ -110,10 +104,7 @@ class MultiLingualTextField(Field):
         return super(MultiLingualTextField, self).formfield(**defaults)
 
 class MultiLingualCharField(MultiLingualTextField):
-    """
-    A django CharField for storing multiple manually-written
-    translations of the same piece of text.
-    """
+    u"""A django CharField for storing multiple manually-written translations of the same piece of text."""
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults
         # while letting the caller override them.
@@ -125,10 +116,7 @@ class MultiLingualCharField(MultiLingualTextField):
         return super(MultiLingualCharField, self).formfield(**defaults)
 
 class MultiLingualFileField(Field):
-    """
-    A django FileField for storing multiple files (by language)
-    in a single field.
-    """
+    u"""A django FileField for storing multiple files (by language) in a single field."""
     description = "Stores multiple files, organized by language. An example use case: I want to store a separate PDF for this model instance for each language on the site."
 
     __metaclass__ = SubfieldBase
@@ -154,10 +142,7 @@ class MultiLingualFileField(Field):
         return 'text'
 
     def to_python(self, value):
-        """
-        Takes XML data from the database and converts it into an instance
-        of MultiLingualFile
-        """
+        u"""Takes XML data from the database and converts it into an instance of MultiLingualFile."""
         if isinstance(value, MultiLingualFile):
             return value
         elif isinstance(value, list):
@@ -193,9 +178,9 @@ class MultiLingualFileField(Field):
         return MultiLingualFile(xml=xml, storage=self.storage)
 
     def get_prep_value(self, value):
-        """
-        Converts an instance of MultiLingualFile into what will ultimately
-        be stored in the database, a block of XML in the following format:
+        u"""
+        Converts an instance of MultiLingualFile into what will ultimately be stored in the database, a block of XML in
+        the following format:
         <languages>
             <language code="en">
                 Hello

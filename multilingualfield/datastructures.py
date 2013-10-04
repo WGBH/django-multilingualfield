@@ -8,10 +8,10 @@ from . import LANGUAGES, INVALID_XML_ERROR, UNKNOWN_LANGUAGE_CODE_ERROR
 from .utils import construct_MultiLingualText_from_xml
 
 class MultiLingualText(object):
-    """A class that aggregates manually-written translations for the same piece of text."""
+    u"""A class that aggregates manually-written translations for the same piece of text."""
 
     def __init__(self, xml=None):
-        """
+        u"""
         `xml` : An optional block of XML formatted like this:
         <languages>
             <language code="en">
@@ -22,13 +22,14 @@ class MultiLingualText(object):
             </language>
         </languages>
 
-        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText
-        that instance would have two attributes:
-        `en` with a value of 'Hello'
-        `es` with a value of 'Hola'
+        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText that instance would have two
+        attributes:
 
-        If `xml` is not passed to a MultiLingualText instance an attribute for each
-        language in settings.LANGUAGES will be built
+        * `en` with a value of 'Hello'
+        * `es` with a value of 'Hola'
+
+        If `xml` is not passed to a MultiLingualText instance an attribute for each language in settings.LANGUAGES will
+        be built.
         """
         self.languages = LANGUAGES
         # Converting XML (passed-in as `xml`) to a python object via lxml
@@ -53,10 +54,8 @@ class MultiLingualText(object):
         return unicode(self.__repr__())
 
     def as_xml(self):
-        """
-        Returns this instance as XML.
-        """
-        xml_to_return = etree.Element("languages")
+        u"""Returns this instance as XML."""
+        xml_to_return = etree.Element(u'languages')
         for key, value in self.__dict__.iteritems():
             if key != 'languages':
                 language = etree.Element("language", code=key)
@@ -66,9 +65,8 @@ class MultiLingualText(object):
         return etree.tostring(xml_to_return)
 
 class MultiLingualFieldFile(File):
-    """
-    A `File` subclasses used specifically for the language-keyed
-    attributes of a MultiLingualFileField instance.
+    u"""
+    A `File` subclasses used specifically for the language-keyed attributes of a MultiLingualFileField instance.
 
     Functions almost identically to django's FieldFile
     """
@@ -121,16 +119,14 @@ class MultiLingualFieldFile(File):
             file.close()
 
 class MultiLingualFile(object):
-    """
-    A class that aggregates multiple files that each correspond
-    to a separate language.
+    u"""
+    A class that aggregates multiple files that each correspond to a separate language.
 
-    Uses MultiLingualFieldFile instances (or None) for
-    language-keyed attributes.
+    Uses MultiLingualFieldFile instances (or None) for language-keyed attributes.
     """
 
     def __init__(self, xml=None, storage=None):
-        """
+        u"""
         `storage` : a django storage class
         `xml` : An optional block of XML formatted like this:
         <languages>
@@ -142,12 +138,11 @@ class MultiLingualFile(object):
             </language>
         </languages>
 
-        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText
-        that instance would have two attributes:
-        `en` with a MultiLingualFieldFile instance that pulls `path/to/file.ext`
-        from `storage`
-        `es` with a MultiLingualFieldFile instance that pulls `path/to/file2.ext`
-        from `storage`
+        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText that instance would have two
+        attributes:
+
+        * `en` with a MultiLingualFieldFile instance that pulls `path/to/file.ext` from `storage`
+        * `es` with a MultiLingualFieldFile instance that pulls `path/to/file2.ext` from `storage`
         """
         self.languages = LANGUAGES
         # Converting XML (passed-in as `xml`) to a python object via lxml
@@ -199,9 +194,7 @@ class MultiLingualFile(object):
             return u''
 
     def as_xml(self):
-        """
-        Returns this instance as XML.
-        """
+        u"""Returns this instance as XML."""
         xml_to_return = etree.Element("languages")
         for key, value in self.__dict__.iteritems():
             if key != 'languages':

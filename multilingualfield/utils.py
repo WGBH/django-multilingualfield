@@ -5,7 +5,7 @@ from lxml import objectify, etree
 from . import LANGUAGES, INVALID_XML_ERROR
 
 def construct_MultiLingualText_from_xml(xml, instance):
-    """
+    u"""
     Arguments:
     `xml` : A block of XML formatted like this:
         <languages>
@@ -17,12 +17,12 @@ def construct_MultiLingualText_from_xml(xml, instance):
             </language>
         </languages>
 
-    `instance`: A MultiLingualText instance
+    * `instance`: A MultiLingualText instance
 
-    If the above block of XML was passed to this function (as `xml`)
-    `instance` will now have two attributes:
-        `en` with a value of 'Hello'
-        `es` with a value of 'Hola'
+    If the above block of XML was passed to this function (as `xml`) `instance` will now have two attributes:
+
+    * `en` with a value of 'Hello'
+    * `es` with a value of 'Hola'
     """
     try:
         xml_as_python_object = objectify.fromstring(xml)
@@ -51,7 +51,7 @@ def construct_MultiLingualText_from_xml(xml, instance):
             setattr(instance, language_code, text)
 
 def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
-    """
+    u"""
     Arguments:
     `xml` : A block of XML formatted like this:
         <languages>
@@ -63,12 +63,11 @@ def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
             </language>
         </languages>
 
-    `instance`: A MultiLingualFile instance
+    * `instance`: A MultiLingualFile instance
 
-    If the above block of XML was passed to this function (as `xml`)
-    `instance` will now have two attributes:
-        `en` with a file stored
-        `es` with a value of 'Hola'
+    If the above block of XML was passed to this function (as `xml`) `instance` will now have two attributes:
+    * `en` with a file stored
+    * `es` with a value of 'Hola'
     """
     from .datastructures import MultiLingualFieldFile
     try:

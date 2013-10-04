@@ -10,25 +10,39 @@ from . import LANGUAGES, INVALID_XML_ERROR
 from .datastructures import MultiLingualText
 
 
+class WidgetWithLanguageAddOn(object):
+    u"""A form widget which appends an <add-on> tag corresponding to a language in ``settings.LANGUAGES``.
+
+    Add a class depending of the ``language_code``, maybe useful for some jQuery functions like ``toggle()``.
+    """
+
+    def __init__(self, attrs, language=None):
+        self.language_code, self.label = language
+        super(WidgetWithLanguageAddOn, self).__init__(attrs)
+
+    def render(self, *args, **kwargs):
+        # FIXME do something with self.label ?
+        html = super(WidgetWithLanguageAddOn, self).render(*args, **kwargs)
+        return mark_safe(u'<div class="input-append tab_element tab_link_{0}">{1}'
+                         u'<span class="add-on">{2}</span></div>'.format(
+                         self.language_code, html, self.language_code.upper()))
+
+
 class WidgetWithLanguageLabel(object):
-    u"""A form widget which prepends a <label> tag corresponding to a language in settings.LANGUAGES."""
+    u"""A form widget which prepends a <label> tag corresponding to a language in settings.LANGUAGES.
+
+    Add a class depending of the ``language_code``, maybe useful for some jQuery functions like ``toggle()``.
+    """
 
     def __init__(self, attrs, language=None):
         self.language_code, self.label = language
         super(WidgetWithLanguageLabel, self).__init__(attrs)
 
     def render(self, name, value, attrs=None):
-        widget = super(WidgetWithLanguageLabel, self).render(name, value, attrs)
-        # Add a class depending of the language_code, maybe useful for some jQuery functions like toggle() ;-)
-        widget = mark_safe(u'<div class="control-group language_%s"><label class="control-label">%s</label>'
-                           u'<div class="controls">%s</div></div>' % (self.language_code, self.label, widget))
-        return widget
-
-class TextareaWithLabel(WidgetWithLanguageLabel, Textarea):
-    u"""
-    A form widget which prepends a <label> tag to Textarea widget corresponding to a language in settings.LANGUAGES.
-    """
-    pass
+        html = super(WidgetWithLanguageLabel, self).render(name, value, attrs)
+        return mark_safe(u'<div class="control-group tab_element tab_link{0}">'
+                         u'<label class="control-label">{1}</label><div class="controls">{2}</div></div>'.format(
+                         self.language_code, self.label, html))
 
 
 class CustomClearableFileInput(ClearableFileInput):
@@ -99,7 +113,7 @@ class MultiLingualFieldBaseMixInWidget(object):
 class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
     u"""A widget that returns a `Textarea` widget for each language specified in settings.LANGUAGES."""
 
-    class FieldWidget(WidgetWithLanguageLabel, Textarea): pass
+    class FieldWidget(WidgetWithLanguageAddOn, Textarea): pass
     for_each_field_widget = FieldWidget
 
     def decompress(self, value):
@@ -133,14 +147,14 @@ class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget)
 class MultiLingualCharFieldWidget(MultiLingualTextFieldWidget):
     u"""A widget that returns a `TextInput` widget for each language specified in settings.LANGUAGES."""
 
-    class FieldWidget(WidgetWithLanguageLabel, TextInput): pass
+    class FieldWidget(WidgetWithLanguageAddOn, TextInput): pass
     for_each_field_widget = FieldWidget
 
 
 class MultiLingualClearableFileInputWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
     u"""A widget that returns a `ClearableFileInput` widget for each language specified in settings.LANGUAGES."""
 
-    class FieldWidget(WidgetWithLanguageLabel, CustomClearableFileInput): pass
+    class FieldWidget(WidgetWithLanguageAddOn, CustomClearableFileInput): pass
     for_each_field_widget = FieldWidget
 
     def decompress(self, value):

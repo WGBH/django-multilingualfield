@@ -1,12 +1,4 @@
-from django.forms.widgets import (
-    CheckboxInput,
-    ClearableFileInput,
-    HiddenInput,
-    MultiWidget,
-    Textarea,
-    TextInput,
-    Widget
-)
+from django.forms.widgets import CheckboxInput, ClearableFileInput, HiddenInput, MultiWidget, Textarea, TextInput
 from django.utils.encoding import force_text
 from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import mark_safe
@@ -38,11 +30,6 @@ class TextareaWithLabel(WidgetWithLanguageLabel, Textarea):
     """
     pass
 
-class TextInputWithLabel(WidgetWithLanguageLabel, TextInput):
-    u"""
-    A form widget which prepends a <label> tag to a TextInput widget corresponding to a language in settings.LANGUAGES.
-    """
-    pass
 
 class CustomClearableFileInput(ClearableFileInput):
     u"""
@@ -96,12 +83,6 @@ class CustomClearableFileInput(ClearableFileInput):
         return upload or data.get(self.initial_filename_name(name), None)
 
 
-class ClearableFileInputWithLabel(WidgetWithLanguageLabel, CustomClearableFileInput):
-    u"""
-    A form widget which prepends a <label> tag to a TextInput widget corresponding to a language in settings.LANGUAGES.
-    """
-
-
 class MultiLingualFieldBaseMixInWidget(object):
     u"""
     The 'base' multilingual field widget. Returns a widget (as specified by the `for_each_field_widget` attribute) for
@@ -117,7 +98,9 @@ class MultiLingualFieldBaseMixInWidget(object):
 
 class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
     u"""A widget that returns a `Textarea` widget for each language specified in settings.LANGUAGES."""
-    for_each_field_widget = TextareaWithLabel
+
+    class FieldWidget(WidgetWithLanguageLabel, Textarea): pass
+    for_each_field_widget = FieldWidget
 
     def decompress(self, value):
         u"""
@@ -146,13 +129,19 @@ class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget)
         # Returning text from XML tree in order dictated by LANGUAGES
         return [text_dict.get(code, u'') for code, verbose in LANGUAGES]
 
+
 class MultiLingualCharFieldWidget(MultiLingualTextFieldWidget):
     u"""A widget that returns a `TextInput` widget for each language specified in settings.LANGUAGES."""
-    for_each_field_widget = TextInputWithLabel
+
+    class FieldWidget(WidgetWithLanguageLabel, TextInput): pass
+    for_each_field_widget = FieldWidget
+
 
 class MultiLingualClearableFileInputWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
     u"""A widget that returns a `ClearableFileInput` widget for each language specified in settings.LANGUAGES."""
-    for_each_field_widget = ClearableFileInputWithLabel
+
+    class FieldWidget(WidgetWithLanguageLabel, CustomClearableFileInput): pass
+    for_each_field_widget = FieldWidget
 
     def decompress(self, value):
         u"""

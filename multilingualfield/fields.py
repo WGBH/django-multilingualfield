@@ -119,7 +119,7 @@ class MultiLingualFileField(Field):
 
         for arg in (u'primary_key', u'unique'):
             if arg in kwargs:
-                raise TypeError(INVALID_ARGUMENT_ERROR % (arg, self.__class__))
+                raise TypeError(INVALID_ARGUMENT_ERROR.format(arg, self.__class__))
 
         self.storage = storage or default_storage
         self.upload_to = upload_to

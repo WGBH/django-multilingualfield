@@ -45,7 +45,7 @@ class MultiLingualText(object):
             val = getattr(self, current)
         except AttributeError:
             if current not in [code for code, verbose in LANGUAGES]:
-                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR % {u'current_language': current})
+                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR.format(current))
             else:
                 val = ''
         return val
@@ -174,7 +174,7 @@ class MultiLingualFile(object):
             val = getattr(self, current)
         except AttributeError:
             if current not in [code for code, verbose in LANGUAGES]:
-                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR % {u'current_language': current})
+                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR.format(current))
             return None
         return val
 

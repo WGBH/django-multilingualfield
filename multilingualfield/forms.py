@@ -52,7 +52,7 @@ class MultiLingualTextFieldForm(MultiValueField):
             for index, entry in enumerate(data_list):
                 language = etree.Element(u'language', code=languages[index])
                 if index == 0 and self.mandatory_field and not entry:
-                    raise ValidationError(REQUIRED_ERROR % LANGUAGES[0][1])
+                    raise ValidationError(REQUIRED_ERROR.format(LANGUAGES[0][1]))
                 language.text = entry
                 xml.append(language)
         return etree.tostring(xml)
@@ -123,5 +123,5 @@ class MultiLingualFileFieldForm(MultiValueField):
         if data_list:
             for index, this_file in enumerate(data_list):
                 if index == 0 and self.mandatory_field and not this_file and not type(this_file) in FILE_FIELD_CLASSES:
-                        raise ValidationError(REQUIRED_ERROR % LANGUAGES[0][1])
+                        raise ValidationError(REQUIRED_ERROR.format(LANGUAGES[0][1]))
         return data_list

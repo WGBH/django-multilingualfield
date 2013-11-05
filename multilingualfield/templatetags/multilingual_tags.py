@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from classytags.arguments import Argument
 from classytags.core import Options
 from classytags.helpers import AsTag
@@ -5,6 +7,7 @@ from django import template
 from django.conf import settings
 
 register = template.Library()
+
 
 class GetTranslationForContext(AsTag):
     u"""
@@ -29,6 +32,7 @@ class GetTranslationForContext(AsTag):
         except AttributeError:
             return u''
 
+
 class GetTranslationByLanguageCode(AsTag):
     u"""
     Retrieves a specific 'translation' for a MultiLingualText instance.
@@ -51,6 +55,7 @@ class GetTranslationByLanguageCode(AsTag):
             return getattr(attr, language_code)
         except AttributeError:
             return u''
+
 
 register.tag(GetTranslationForContext)
 register.tag(GetTranslationByLanguageCode)

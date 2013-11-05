@@ -1,13 +1,13 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from django.forms.widgets import CheckboxInput, ClearableFileInput, HiddenInput, MultiWidget, Textarea, TextInput
 from django.utils.encoding import force_text
 from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import mark_safe
-
 from lxml import objectify
 from lxml.etree import XMLSyntaxError
 
-from . import LANGUAGES, INVALID_XML_ERROR
-from .datastructures import MultiLingualText
+from . import datastructures, LANGUAGES, INVALID_XML_ERROR
 
 
 class WidgetWithLanguageAddOn(object):
@@ -123,10 +123,9 @@ class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget)
         """
         text_dict = {}
         if value:
-            # Both MultiLingualCharField and MultiLingualTextField instances
-            # provide `MultiLingualText` instances by default but handling
-            # for raw XML has been included for convenience.
-            if isinstance(value, MultiLingualText):
+            # Both MultiLingualCharField and MultiLingualTextField instances provide `MultiLingualText` instances by
+            # default but handling for raw XML has been included for convenience.
+            if isinstance(value, datastructures.MultiLingualText):
                 text_dict = {code: getattr(value, code) for code, verbose in LANGUAGES}
             else:
                 # Converting XML (passed-in as `value`) to a python object via lxml

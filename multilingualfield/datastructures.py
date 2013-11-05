@@ -1,11 +1,12 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import File
 from django.utils.translation import get_language
 
 from lxml import objectify, etree
 
-from . import LANGUAGES, INVALID_XML_ERROR, UNKNOWN_LANGUAGE_CODE_ERROR
-from .utils import construct_MultiLingualText_from_xml
+from . import utils, LANGUAGES, INVALID_XML_ERROR, UNKNOWN_LANGUAGE_CODE_ERROR
 
 class MultiLingualText(object):
     u"""A class that aggregates manually-written translations for the same piece of text."""
@@ -34,7 +35,7 @@ class MultiLingualText(object):
         self.languages = LANGUAGES
         # Converting XML (passed-in as `xml`) to a python object via lxml
         if xml:
-            construct_MultiLingualText_from_xml(xml, self)
+            utils.construct_MultiLingualText_from_xml(xml, self)
         else:
             for code, verbose in LANGUAGES:
                 setattr(self, code, u'')

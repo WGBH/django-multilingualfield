@@ -1,12 +1,13 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models import SubfieldBase, Field
 from lxml import objectify, etree
 
-from . import LANGUAGES, INVALID_ARGUMENT_ERROR, XML_SYNTAX_ERROR
-from .datastructures import MultiLingualText, MultiLingualFile
-from .forms import MultiLingualTextFieldForm, MultiLingualCharFieldForm, MultiLingualFileFieldForm, FILE_FIELD_CLASSES
+from . import datastructures, forms, LANGUAGES, INVALID_ARGUMENT_ERROR, XML_SYNTAX_ERROR
+
 
 if u'south' in settings.INSTALLED_APPS:
     from south.modelsinspector import add_introspection_rules
@@ -19,6 +20,7 @@ if u'south' in settings.INSTALLED_APPS:
         ]
     )
 
+
 class MultiLingualTextField(Field):
     u"""A django TextField for storing multiple manually-written translations of the same piece of text."""
     description = u'Stores multiple manually-written translations of the same piece of text.'
@@ -28,8 +30,7 @@ class MultiLingualTextField(Field):
     def __init__(self, *args, **kwargs):
         self.individual_widget_max_length = kwargs.get(u'max_length', None)
         if self.individual_widget_max_length:
-            # Removing max_length so syncdb/south don't make a DB column
-            # that's too small for future language additions
+            # Removing max_length so syncdb/south don't make a DB column that's too small for future language additions
             del kwargs[u'max_length']
         super(MultiLingualTextField, self).__init__(*args, **kwargs)
 
@@ -41,7 +42,9 @@ class MultiLingualTextField(Field):
         # Obviously MultiLingualText instances aren't stored in the database but this conditional is there
         # 'just-in-case' since a seralizer might be utilized in the future for this field.
         # -> Else : Use the XML stored in the database to create a MultiLingualText instance
-        return value if isinstance(value, MultiLingualText) else MultiLingualText(xml=value)
+        if isinstance(value, datastructures.MultiLingualText):
+            return value
+        return datastructures.MultiLingualText(xml=value)
 
     def get_prep_value(self, value):
         u"""
@@ -57,7 +60,7 @@ class MultiLingualTextField(Field):
         </languages>
         """
         # Checks to see if this is a `MultiLingualText` instance
-        if isinstance(value, MultiLingualText):
+        if isinstance(value, datastructures.MultiLingualText):
             # If it is, convert the instance to XML
             xml = value.as_xml()
         else:
@@ -82,26 +85,26 @@ class MultiLingualTextField(Field):
         return xml
 
     def formfield(self, **kwargs):
-        # This is a fairly standard way to set up some defaults
-        # while letting the caller override them.
+        # This is a fairly standard way to set up some defaults while letting the caller override them.
         defaults = {
-            u'form_class': MultiLingualTextFieldForm,
+            u'form_class': forms.MultiLingualTextField,
             u'individual_widget_max_length': self.individual_widget_max_length
         }
         defaults.update(kwargs)
         return super(MultiLingualTextField, self).formfield(**defaults)
 
+
 class MultiLingualCharField(MultiLingualTextField):
     u"""A django CharField for storing multiple manually-written translations of the same piece of text."""
     def formfield(self, **kwargs):
-        # This is a fairly standard way to set up some defaults
-        # while letting the caller override them.
+        # This is a fairly standard way to set up some defaults while letting the caller override them.
         defaults = {
-            u'form_class': MultiLingualCharFieldForm,
+            u'form_class': forms.MultiLingualCharField,
             u'individual_widget_max_length': self.individual_widget_max_length
         }
         defaults.update(kwargs)
         return super(MultiLingualCharField, self).formfield(**defaults)
+
 
 class MultiLingualFileField(Field):
     u"""A django FileField for storing multiple files (by language) in a single field."""
@@ -113,8 +116,7 @@ class MultiLingualFileField(Field):
     def __init__(self, verbose_name=None, name=None, upload_to=u'', storage=None, **kwargs):
         self.individual_widget_max_length = kwargs.get(u'max_length', None)
         if self.individual_widget_max_length:
-            # Removing max_length so syncdb/south don't make a DB column
-            # that's too small for future language additions
+            # Removing max_length so syncdb/south don't make a DB column that's too small for future language additions
             del kwargs[u'max_length']
 
         for arg in (u'primary_key', u'unique'):
@@ -132,7 +134,7 @@ class MultiLingualFileField(Field):
 
     def to_python(self, value):
         u"""Takes XML data from the database and converts it into an instance of MultiLingualFile."""
-        if isinstance(value, MultiLingualFile):
+        if isinstance(value, datastructures.MultiLingualFile):
             return value
         elif isinstance(value, list):
             languages = [code for code, verbose in LANGUAGES]
@@ -140,7 +142,7 @@ class MultiLingualFileField(Field):
             for index, this_file in enumerate(value):
                 language = etree.Element(u'language', code=languages[index])
                 # If `this_file` exists and is a 'File'
-                if this_file and (type(this_file) in FILE_FIELD_CLASSES):
+                if this_file and (type(this_file) in forms.FILE_FIELD_CLASSES):
                     # Figure out 'intended' file name and path
                     file_name_and_path = os.path.join(self.upload_to, this_file.name)
                     # Create file using this field's storage (as provided by the parent fields 'formfield' method)
@@ -155,7 +157,7 @@ class MultiLingualFileField(Field):
             xml = etree.tostring(xml_block)
         else:
             xml = value
-        return MultiLingualFile(xml=xml, storage=self.storage)
+        return datastructures.MultiLingualFile(xml=xml, storage=self.storage)
 
     def get_prep_value(self, value):
         u"""
@@ -171,12 +173,12 @@ class MultiLingualFileField(Field):
         </languages>
         """
         # Checks to see if this is a `MultiLingualFile` instance
-        return value.as_xml() if isinstance(value, MultiLingualFile) else value
+        return value.as_xml() if isinstance(value, datastructures.MultiLingualFile) else value
 
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults while letting the caller override them.
         defaults = {
-            u'form_class': MultiLingualFileFieldForm,
+            u'form_class': forms.MultiLingualFileField,
             u'individual_widget_max_length': self.individual_widget_max_length
         }
         defaults.update(kwargs)

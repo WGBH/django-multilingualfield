@@ -1,19 +1,20 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from django.core.files.base import File
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from django.forms import CharField, MultiValueField, ValidationError, FileField
 from django.forms.widgets import FILE_INPUT_CONTRADICTION
 from lxml import etree
 
-from . import LANGUAGES, REQUIRED_ERROR
-from .widgets import MultiLingualCharFieldWidget, MultiLingualTextFieldWidget, MultiLingualClearableFileInputWidget
+from . import widgets, LANGUAGES, LANGUAGES_REPLACEMENT, LANGUAGES_REQUIRED_TEXT, REQUIRED_ERROR
 
 # This list is used to validate file uploads
 FILE_FIELD_CLASSES = File.__subclasses__() + [TemporaryUploadedFile, InMemoryUploadedFile]
 
 
-class MultiLingualTextFieldForm(MultiValueField):
-    u"""The form used by MultiLingualTextField."""
-    widget = MultiLingualTextFieldWidget
+class MultiLingualTextField(MultiValueField):
+    u"""The field used by MultiLingualTextField."""
+    widget = widgets.MultiLingualTextFieldWidget
 
     def widget_attrs(self, widget):
         u"""
@@ -27,12 +28,14 @@ class MultiLingualTextFieldForm(MultiValueField):
         if u'individual_widget_max_length' in kwargs:
             del kwargs[u'individual_widget_max_length']
         self.mandatory_field = kwargs[u'required']
-        #kwargs['required'] = False
-        fields = [
-            CharField(label=verbose, max_length=self.individual_widget_max_length)
-            for code, verbose in LANGUAGES
-        ]
-        super(MultiLingualTextFieldForm, self).__init__(tuple(fields), *args, **kwargs)
+        kwargs[u'require_all_fields'] = kwargs[u'required'] = False
+        fields = []
+        for code, verbose in LANGUAGES:
+            field = CharField(label=verbose, required=self.mandatory_field and code not in LANGUAGES_REPLACEMENT,
+                              max_length=self.individual_widget_max_length)
+            field.error_messages.setdefault(u'incomplete', REQUIRED_ERROR.format(verbose))
+            fields.append(field)
+        super(MultiLingualTextField, self).__init__(tuple(fields), *args, **kwargs)
 
     def compress(self, data_list):
         u"""
@@ -46,25 +49,29 @@ class MultiLingualTextFieldForm(MultiValueField):
             </language>
         </languages>
         """
-        languages = [code for code, verbose in LANGUAGES]
         xml = etree.Element(u'languages')
-        if data_list:
+        if self.mandatory_field and not data_list:
+            raise ValidationError(REQUIRED_ERROR.format(LANGUAGES_REQUIRED_TEXT))
+        elif data_list:
             for index, entry in enumerate(data_list):
-                language = etree.Element(u'language', code=languages[index])
-                if index == 0 and self.mandatory_field and not entry:
-                    raise ValidationError(REQUIRED_ERROR.format(LANGUAGES[0][1]))
+                code, verbose = LANGUAGES[index]
+                language = etree.Element(u'language', code=code)
+                if code not in LANGUAGES_REPLACEMENT and not entry and self.mandatory_field:
+                    raise ValidationError(REQUIRED_ERROR.format(verbose))
                 language.text = entry
                 xml.append(language)
         return etree.tostring(xml)
 
-class MultiLingualCharFieldForm(MultiLingualTextFieldForm):
-    u"""The form used by MultiLingualCharField."""
-    widget = MultiLingualCharFieldWidget
+
+class MultiLingualCharField(MultiLingualTextField):
+    u"""The field used by MultiLingualCharField."""
+    widget = widgets.MultiLingualCharFieldWidget
+
 
 class FileOrAlreadyExistantFilePathField(FileField):
     u"""
     A FileField subclass that provides either an instance of a 'File' (as determined by FILE_FIELD_CLASSES), a bool
-    (which means the file is being 'cleared' from a model instance) or a str/unicode (a path to an existant file).
+    (which means the file is being 'cleared' from a model instance) or a str/unicode (a path to an existent file).
     """
 
     def clean(self, data, initial=None):
@@ -84,9 +91,9 @@ class FileOrAlreadyExistantFilePathField(FileField):
         return initial if (not data and initial) else super(FileOrAlreadyExistantFilePathField, self).clean(data)
 
 
-class MultiLingualFileFieldForm(MultiValueField):
-    u"""The form used by MultiLingualFileField."""
-    widget = MultiLingualClearableFileInputWidget
+class MultiLingualFileField(MultiValueField):
+    u"""The field used by MultiLingualFileField."""
+    widget = widgets.MultiLingualClearableFileInputWidget
 
     def widget_attrs(self, widget):
         u"""
@@ -104,7 +111,7 @@ class MultiLingualFileFieldForm(MultiValueField):
             FileOrAlreadyExistantFilePathField(label=verbose, max_length=self.individual_widget_max_length)
             for code, verbose in LANGUAGES
         ]
-        super(MultiLingualFileFieldForm, self).__init__(tuple(fields), *args, **kwargs)
+        super(MultiLingualFileField, self).__init__(tuple(fields), *args, **kwargs)
 
     def compress(self, data_list):
         u"""
@@ -120,8 +127,12 @@ class MultiLingualFileFieldForm(MultiValueField):
         """
         #languages = [code for code, verbose in LANGUAGES]
         #xml = etree.Element(u'languages')
-        if data_list:
+        if self.mandatory_field and not data_list:
+            raise ValidationError(REQUIRED_ERROR.format(LANGUAGES_REQUIRED_TEXT))
+        elif data_list:
             for index, this_file in enumerate(data_list):
-                if index == 0 and self.mandatory_field and not this_file and not type(this_file) in FILE_FIELD_CLASSES:
-                        raise ValidationError(REQUIRED_ERROR.format(LANGUAGES[0][1]))
+                code, verbose = LANGUAGES[index]
+                if (code not in LANGUAGES_REPLACEMENT and self.mandatory_field
+                    and not this_file and not type(this_file) in FILE_FIELD_CLASSES):
+                    raise ValidationError(REQUIRED_ERROR.format(verbose))
         return data_list

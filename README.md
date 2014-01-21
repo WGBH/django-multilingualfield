@@ -6,7 +6,7 @@ A [south](http://south.aeracode.org/)-compatible django field for storing multip
 
 ### Current Version ###
 
-0.2
+0.3
 
 ## Requirements ##
 
@@ -43,10 +43,11 @@ I didn't want to create multiple `CharField` or `TextField` attributes for each 
 
 1. `multilingualfield.fields.MultiLingualCharField`: Functionality mirrors that of django's `django.db.models.CharField`
 2. `multilingualfield.fields.MultiLingualTextField`: Functionality mirrors that of django's `django.db.models.TextField`
+2. `multilingualfield.fields.MultiLingualFileField`: Functionality mirrors that of django's `django.db.models.FileField`
 
-At the database level, `MultiLingualCharField` and `MultiLingualTextField` are essentially identical in that their content is both stored within 'text' columns (as opposed to either 'varchar' or 'text'); they diverge only in the widgets they use.
+At the database level, `MultiLingualCharField`, `MultiLingualTextField` and `MultiLingualFileField` are essentially identical in that their content is both stored within 'text' columns (as opposed to either 'varchar' or 'text'); they diverge only in the widgets/forms they use.
 
-Any options you would can pass to a `CharField` or `TextField` (i.e. blank=True, max_length=50) will work as expected but `max_length` will not be enforced at a database level (only during form creation and input validation).
+Any options you would can pass to a `CharField`, `TextField` or `FileField` (i.e. blank=True, max_length=50, upload_to='path/', storage=StorageClass()) will work as expected but `max_length` will not be enforced at a database level (only during form creation and input validation).
 
 ## Usage ##
 
@@ -64,7 +65,7 @@ LANGUAGE_CODE = 'en'
 
 LANGUAGES = [
     ('en', 'English'),
-    ('es', 'Espa&#241;ol') # See note belo note
+    ('es', 'Espa&#241;ol') # See note below note
 ]
 ```
  > ##### NOTE #####

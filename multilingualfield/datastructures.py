@@ -144,7 +144,7 @@ class MultiLingualFile(object):
             </language>
         </languages>
 
-        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText
+        If the above block of XML was passed (as `xml`) to an instance of MultiLingualFile
         that instance would have two attributes:
         `en` with a MultiLingualFieldFile instance that pulls `path/to/file.ext`
         from `storage`

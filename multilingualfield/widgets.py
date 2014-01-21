@@ -26,7 +26,7 @@ class WidgetWithLanguageLabel(object):
     def __init__(self, attrs, language=None):
         self.label = language[1]
         self.language_code = language[0]
-        super(WidgetWithLanguageLabel, self).__init__(attrs)
+        super(WidgetWithLanguageLabel, self).__init__(attrs=attrs)
 
     def render(self, name, value, attrs=None):
         widget = super(WidgetWithLanguageLabel, self).render(name, value, attrs)
@@ -139,12 +139,12 @@ class MultiLingualFieldBaseMixInWidget(object):
 
     for_each_field_widget = None
 
-    def __init__(self, attrs=None):
+    def __init__(self, attrs=None, *args, **kwargs):
         widgets = [
-            self.for_each_field_widget(attrs, language=language)
+            self.for_each_field_widget(attrs=attrs, language=language, **kwargs)
             for language in LANGUAGES
         ]
-        super(MultiLingualFieldBaseMixInWidget, self).__init__(widgets, attrs)
+        super(MultiLingualFieldBaseMixInWidget, self).__init__(widgets, attrs, **kwargs)
 
 class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget):
     """

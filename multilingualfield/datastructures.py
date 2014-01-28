@@ -1,5 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import File
+from django.utils.encoding import smart_str
 from django.utils.translation import get_language
 
 from lxml import objectify, etree
@@ -49,7 +50,7 @@ class MultiLingualText(object):
                 )
             else:
                 val = ""
-        return val
+        return smart_str(val)
 
     def __unicode__(self):
         return unicode(self.__repr__())

@@ -39,7 +39,11 @@ class MultiLingualText(object):
             for language_code, language_verbose in LANGUAGES:
                 setattr(self, language_code, "")
 
-    def __repr__(self):
+    def get_for_current_language(self):
+        """
+        Returns the attribute on this object associated with the current language
+        of the active thread (as provided by django.utils.translation.get_language)
+        """
         current_language = get_language()
         try:
             val = getattr(self, current_language)
@@ -50,10 +54,16 @@ class MultiLingualText(object):
                 )
             else:
                 val = ""
-        return smart_str(val)
+        return val
+
+
+    def __repr__(self):
+        val = self.get_for_current_language()
+        return smart_str(val, errors='ignore')
 
     def __unicode__(self):
-        return unicode(self.__repr__())
+        val = self.get_for_current_language()
+        return smart_str(val, errors='strict')
 
     def as_xml(self):
         """

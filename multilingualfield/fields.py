@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.core.exceptions import FieldError
 from django.core.files.storage import default_storage
 from django.db.models import (
     SubfieldBase,
@@ -18,17 +19,6 @@ from .forms import (
     FILE_FIELD_CLASSES
 )
 
-if 'south' in settings.INSTALLED_APPS:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules(
-        [],
-        [
-            "^multilingualfield\.fields\.MultiLingualTextField",
-            "^multilingualfield\.fields\.MultiLingualCharField",
-            "^multilingualfield\.fields\.MultiLingualFileField",
-        ]
-    )
-
 class MultiLingualTextField(Field):
     """
     A django TextField for storing multiple manually-written
@@ -40,6 +30,14 @@ class MultiLingualTextField(Field):
 
     def __init__(self, *args, **kwargs):
         self.individual_widget_max_length = kwargs.get('max_length', None)
+        self._db_type = kwargs.get('db_type', 'text')
+        if self._db_type not in ['text', 'mediumtext', 'longtext']:
+            raise FieldError("Invalid db_type! Allowed choices are 'text', 'mediumtext' (MySQL only) or 'longtext'.")
+        else:
+            try:
+                del kwargs['db_type']
+            except KeyError:
+                pass
         if self.individual_widget_max_length:
             # Removing max_length so syncdb/south don't make a DB column
             # that's too small for future language additions
@@ -47,7 +45,15 @@ class MultiLingualTextField(Field):
         super(MultiLingualTextField, self).__init__(*args, **kwargs)
 
     def db_type(self, connection):
-        return 'text'
+        db_type = self._db_type
+        if db_type == 'text':
+            db_type = 'TextField'
+        elif db_type == 'mediumtext':
+            if connection.settings_dict['ENGINE'] == 'django.db.backends.mysql':
+                pass
+            else:
+                db_type = 'longtext'
+        return db_type
 
     def to_python(self, value):
         """
@@ -224,3 +230,26 @@ class MultiLingualFileField(Field):
         }
         defaults.update(kwargs)
         return super(MultiLingualFileField, self).formfield(**defaults)
+
+if 'south' in settings.INSTALLED_APPS:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules(
+        [],
+        [
+            "^multilingualfield\.fields\.MultiLingualCharField",
+            "^multilingualfield\.fields\.MultiLingualFileField",
+        ]
+    )
+    multilingualtextfield_rules = [
+        (
+            (MultiLingualTextField,),
+            [],
+            {
+                'db_type': ['_db_type', {'default': 'text'}]
+            }
+        )
+    ]
+    add_introspection_rules(
+        multilingualtextfield_rules,
+        ["^multilingualfield\.fields\.MultiLingualTextField",]
+    )

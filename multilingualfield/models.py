@@ -50,5 +50,5 @@ class MultilingualFieldsMixin(object):
         if fields_names is None:
             fields_names = [f.name for f in cls.multilingual_fields()]
         language_regex = LANGUAGE_REGEX.format(language_code)
-        arguments = {ARGUMENT.format(name): language_regex for name in fields_names}
+        arguments = dict((ARGUMENT.format(name), language_regex) for name in fields_names)
         return cls.objects.filter(**arguments) if inverse else cls.objects.exclude(**arguments)

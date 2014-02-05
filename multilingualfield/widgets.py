@@ -136,9 +136,10 @@ class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget)
                 else:
                     # Creating a dictionary of all the languages passed in the value XML
                     # with the language code (i.e. 'en', 'de', 'fr') as the key
-                    text_dict = {
-                        unicode(l.code): unicode(l.language_text or u'') for l in xml_as_python_object.language
-                    }
+                    text_dict = dict(
+                        (unicode(l.code), unicode(l.language_text or u''))
+                        for l in xml_as_python_object.language
+                    )
         # Returning text from XML tree in order dictated by LANGUAGES
         return [text_dict.get(code, u'') for code, verbose in LANGUAGES]
 
@@ -161,6 +162,6 @@ class MultiLingualClearableFileInputWidget(MultiLingualFieldBaseMixInWidget, Mul
         Receives an instance of `MultiLingualFile` and returns a list of broken-out-files corresponding in position to
         the current ordering of settings.LANGUAGES.
         """
-        text_dict = {code: getattr(value, code) for code, verbose in LANGUAGES} if value else {}
+        text_dict = dict((code, getattr(value, code)) for code, verbose in LANGUAGES) if value else {}
         # Returning text from XML tree in order dictated by LANGUAGES
         return [text_dict.get(code) for code, verbose in LANGUAGES]

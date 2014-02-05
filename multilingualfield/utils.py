@@ -1,11 +1,13 @@
-from django.core.files.storage import default_storage
+from __future__ import absolute_import, division, print_function, unicode_literals
 
+from django.core.files.storage import default_storage
 from lxml import objectify, etree
 
-from . import LANGUAGES
+from . import LANGUAGES, INVALID_XML_ERROR
+
 
 def construct_MultiLingualText_from_xml(xml, instance):
-    """
+    u"""
     Arguments:
     `xml` : A block of XML formatted like this:
         <languages>
@@ -17,41 +19,32 @@ def construct_MultiLingualText_from_xml(xml, instance):
             </language>
         </languages>
 
-    `instance`: A MultiLingualText instance
+    * `instance`: A MultiLingualText instance
 
-    If the above block of XML was passed to this function (as `xml`)
-    `instance` will now have two attributes:
-        `en` with a value of 'Hello'
-        `es` with a value of 'Hola'
+    If the above block of XML was passed to this function (as `xml`) `instance` will now have two attributes:
+
+    * `en` with a value of 'Hello'
+    * `es` with a value of 'Hola'
     """
     try:
         xml_as_python_object = objectify.fromstring(xml)
     except etree.XMLSyntaxError:
-        raise Exception("Invalid XML was passed to MultiLingualText")
+        raise Exception(INVALID_XML_ERROR + ' MultiLingualText')
     else:
         # Creating a dictionary of all the languages passed in the value XML
         # with the language code (i.e. 'en', 'de', 'fr') as the key
-        language_text_as_dict = {}
+        text_dict = {}
         try:
-            for language in xml_as_python_object.language:
-                if language.text:
-                    language_text = unicode(language.text)
-                else:
-                    language_text = ''
-                language_text_as_dict[unicode(language.get('code'))] = language_text
+            text_dict = {unicode(l.get(u'code')): unicode(l.text or u'') for l in xml_as_python_object.language}
         except AttributeError:
             # Empty fields throw-off lxml and cause an AttributeError
             pass
-        for language_code, language_verbose in LANGUAGES:
-            if language_code in language_text_as_dict:
-                text = language_text_as_dict[language_code]
-            else:
-                text = ""
+        for code, verbose in LANGUAGES:
+            setattr(instance, code, text_dict.get(code, u''))
 
-            setattr(instance, language_code, text)
 
 def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
-    """
+    u"""
     Arguments:
     `xml` : A block of XML formatted like this:
         <languages>
@@ -63,36 +56,26 @@ def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
             </language>
         </languages>
 
-    `instance`: A MultiLingualFile instance
+    * `instance`: A MultiLingualFile instance
 
-    If the above block of XML was passed to this function (as `xml`)
-    `instance` will now have two attributes:
-        `en` with a file stored
-        `es` with a value of 'Hola'
+    If the above block of XML was passed to this function (as `xml`) `instance` will now have two attributes:
+    * `en` with a file stored at path/to/file.ext within `storage`
+    * `es` with a file stored at path/to/file2.ext within `storage`
     """
     from .datastructures import MultiLingualFieldFile
     try:
         xml_as_python_object = objectify.fromstring(xml)
     except etree.XMLSyntaxError:
-        raise Exception("Invalid XML was passed to MultiLingualText")
+        raise Exception(INVALID_XML_ERROR + ' MultiLingualText')
     else:
         # Creating a dictionary of all the languages passed in the value XML
         # with the language code (i.e. 'en', 'de', 'fr') as the key
-        language_text_as_dict = {}
+        text_dict = {}
         try:
-            for language in xml_as_python_object.language:
-                if language.text:
-                    language_text = unicode(language.text)
-                else:
-                    language_text = ''
-                language_text_as_dict[unicode(language.get('code'))] = language_text
+            text_dict = dict((unicode(l.get('code')), unicode(l.text or u'')) for l in xml_as_python_object.language)
         except AttributeError:
             # Empty fields throw-off lxml and cause an AttributeError
             pass
-        for language_code, language_verbose in LANGUAGES:
-            if language_code in language_text_as_dict:
-                name = language_text_as_dict[language_code]
-                f = MultiLingualFieldFile(storage=storage, name=name)
-            else:
-                f = None
-            setattr(instance, language_code, f)
+        for code, verbose in LANGUAGES:
+            setattr(instance, code, MultiLingualFieldFile(storage=storage, name=text_dict[code])
+                                    if code in text_dict else None)

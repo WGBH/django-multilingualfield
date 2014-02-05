@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import File
 from django.utils.encoding import smart_str
@@ -5,14 +7,13 @@ from django.utils.translation import get_language
 
 from lxml import objectify, etree
 
-from . import LANGUAGES
-from .utils import construct_MultiLingualText_from_xml
+from . import utils, LANGUAGES, INVALID_XML_ERROR, UNKNOWN_LANGUAGE_CODE_ERROR
 
 class MultiLingualText(object):
-    """A class that aggregates manually-written translations for the same piece of text."""
+    u"""A class that aggregates manually-written translations for the same piece of text."""
 
     def __init__(self, xml=None):
-        """
+        u"""
         `xml` : An optional block of XML formatted like this:
         <languages>
             <language code="en">
@@ -23,37 +24,37 @@ class MultiLingualText(object):
             </language>
         </languages>
 
-        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText
-        that instance would have two attributes:
-        `en` with a value of 'Hello'
-        `es` with a value of 'Hola'
+        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText that instance would have two
+        attributes:
 
-        If `xml` is not passed to a MultiLingualText instance an attribute for each
-        language in settings.LANGUAGES will be built
+        * `en` with a value of 'Hello'
+        * `es` with a value of 'Hola'
+
+        If `xml` is not passed to a MultiLingualText instance an attribute for each language in settings.LANGUAGES will
+        be built.
         """
         self.languages = LANGUAGES
         # Converting XML (passed-in as `xml`) to a python object via lxml
         if xml:
-            construct_MultiLingualText_from_xml(xml, self)
+            utils.construct_MultiLingualText_from_xml(xml, self)
         else:
-            for language_code, language_verbose in LANGUAGES:
-                setattr(self, language_code, "")
+            for code, verbose in LANGUAGES:
+                setattr(self, code, u'')
 
     def get_for_current_language(self):
         """
         Returns the attribute on this object associated with the current language
         of the active thread (as provided by django.utils.translation.get_language)
         """
-        current_language = get_language()
+        current = get_language()
+
         try:
-            val = getattr(self, current_language)
+            val = getattr(self, current)
         except AttributeError:
-            if current_language not in [language_code for language_code, language_verbose in LANGUAGES]:
-                raise ImproperlyConfigured(
-                    "django.utils.translation.get_language returned a language code ('%(current_language)s') not included in the `LANGUAGES` setting for this project. Either add an entry for the '%(current_language)s' language code to `LANGUAGES` or change your `LANGUAGE_CODE` setting to match a language code already listed in `LANGUAGES`." % {'current_language':current_language}
-                )
+            if current not in [code for code, verbose in LANGUAGES]:
+                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR.format(current))
             else:
-                val = ""
+                val = ''
         return val
 
 
@@ -66,22 +67,18 @@ class MultiLingualText(object):
         return smart_str(val, errors='strict')
 
     def as_xml(self):
-        """
-        Returns this instance as XML.
-        """
-        xml_to_return = etree.Element("languages")
+        u"""Returns this instance as XML."""
+        xml_to_return = etree.Element(u'languages')
         for key, value in self.__dict__.iteritems():
-            if key != 'languages':
-                language = etree.Element("language", code=key)
+            if key != u'languages':
+                language = etree.Element(u'language', code=key)
                 language.text = value
                 xml_to_return.append(language)
-
         return etree.tostring(xml_to_return)
 
 class MultiLingualFieldFile(File):
-    """
-    A `File` subclasses used specifically for the language-keyed
-    attributes of a MultiLingualFileField instance.
+    u"""
+    A `File` subclasses used specifically for the language-keyed attributes of a MultiLingualFileField instance.
 
     Functions almost identically to django's FieldFile
     """
@@ -91,59 +88,56 @@ class MultiLingualFieldFile(File):
         self.storage = storage
         self._committed = True
 
-    def _get_file(self):
-        if not hasattr(self, '_file') or self._file is None:
-            self._file = self.storage.open(self.name, 'rb')
+    @property
+    def file(self):
+        if not getattr(self, u'_file', None):
+            self._file = self.storage.open(self.name, u'rb')
         return self._file
 
-    def _set_file(self, file):
-        self._file = file
+    @file.setter
+    def file(self, value):
+        self._file = value
 
-    def _del_file(self):
+    @file.deleter
+    def file(self):
         del self._file
 
-    file = property(_get_file, _set_file, _del_file)
-
-    def _get_path(self):
+    @property
+    def path(self):
         return self.storage.path(self.name)
-    path = property(_get_path)
 
-    def _get_url(self):
+    @property
+    def url(self):
         return self.storage.url(self.name)
-    url = property(_get_url)
 
-    def _get_size(self):
-        if not self._committed:
-            return self.file.size
-        return self.storage.size(self.name)
-    size = property(_get_size)
+    @property
+    def size(self):
+        return self.storage.size(self.name) if self._committed else self.file.size
 
-    def open(self, mode='rb'):
+    def open(self, mode=u'rb'):
         self.file.open(mode)
     # open() doesn't alter the file's contents, but it does reset the pointer
     open.alters_data = True
 
-    def _get_closed(self):
-        file = getattr(self, '_file', None)
+    @property
+    def closed(self):
+        file = getattr(self, u'_file', None)
         return file is None or file.closed
-    closed = property(_get_closed)
 
     def close(self):
-        file = getattr(self, '_file', None)
+        file = getattr(self, u'_file', None)
         if file is not None:
             file.close()
 
 class MultiLingualFile(object):
-    """
-    A class that aggregates multiple files that each correspond
-    to a separate language.
+    u"""
+    A class that aggregates multiple files that each correspond to a separate language.
 
-    Uses MultiLingualFieldFile instances (or None) for
-    language-keyed attributes.
+    Uses MultiLingualFieldFile instances (or None) for language-keyed attributes.
     """
 
     def __init__(self, xml=None, storage=None):
-        """
+        u"""
         `storage` : a django storage class
         `xml` : An optional block of XML formatted like this:
         <languages>
@@ -155,12 +149,11 @@ class MultiLingualFile(object):
             </language>
         </languages>
 
-        If the above block of XML was passed (as `xml`) to an instance of MultiLingualFile
-        that instance would have two attributes:
-        `en` with a MultiLingualFieldFile instance that pulls `path/to/file.ext`
-        from `storage`
-        `es` with a MultiLingualFieldFile instance that pulls `path/to/file2.ext`
-        from `storage`
+        If the above block of XML was passed (as `xml`) to an instance of MultiLingualText that instance would have two
+        attributes:
+
+        * `en` with a MultiLingualFieldFile instance that pulls `path/to/file.ext` from `storage`
+        * `es` with a MultiLingualFieldFile instance that pulls `path/to/file2.ext` from `storage`
         """
         self.languages = LANGUAGES
         # Converting XML (passed-in as `xml`) to a python object via lxml
@@ -168,63 +161,45 @@ class MultiLingualFile(object):
             try:
                 xml_as_python_object = objectify.fromstring(xml)
             except etree.XMLSyntaxError:
-                raise Exception("Invalid XML was passed to MultiLingualText")
+                raise Exception(INVALID_XML_ERROR + ' MultiLingualText')
             else:
                 # Creating a dictionary of all the languages passed in the value XML
                 # with the language code (i.e. 'en', 'de', 'fr') as the key
-                language_text_as_dict = {}
+                text_dict = {}
                 try:
-                    for language in xml_as_python_object.language:
-                        if language.text:
-                            language_text = unicode(language.text)
-                        else:
-                            language_text = ''
-                        language_text_as_dict[unicode(language.get('code'))] = language_text
+                    text_dict = {
+                        unicode(l.get(u'code')): unicode(l.text or u'')
+                        for l in xml_as_python_object.language
+                    }
                 except AttributeError:
                     # Empty fields throw-off lxml and cause an AttributeError
                     pass
-                for language_code, language_verbose in LANGUAGES:
-                    if language_code in language_text_as_dict:
-                        name = language_text_as_dict[language_code]
-                        f = MultiLingualFieldFile(storage=storage, name=name)
-                    else:
-                        f = None
-                    setattr(self, language_code, f)
+                for code, verbose in LANGUAGES:
+                    setattr(self, code, MultiLingualFieldFile(storage=storage, name=text_dict[code])
+                                        if code in text_dict else None)
         else:
-            for language_code, language_verbose in LANGUAGES:
-                setattr(self, language_code, None)
+            for code, verbose in LANGUAGES:
+                setattr(self, code, None)
 
     def __repr__(self):
-        current_language = get_language()
+        current = get_language()
         try:
-            val = getattr(self, current_language)
+            val = getattr(self, current)
         except AttributeError:
-            if current_language not in [language_code for language_code, language_verbose in LANGUAGES]:
-                raise ImproperlyConfigured(
-                    "django.utils.translation.get_language returned a language code ('%(current_language)s') not included in the `LANGUAGES` setting for this project. Either add an entry for the '%(current_language)s' language code to `LANGUAGES` or change your `LANGUAGE_CODE` setting to match a language code already listed in `LANGUAGES`." % {'current_language':current_language}
-                )
-            else:
-                val = None
-        return val
+            if current not in [code for code, verbose in LANGUAGES]:
+                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR.format(current))
+            return None
+        return smart_str(val, errors='ignore')
 
     def __unicode__(self):
-        if self.__repr__():
-            return self.__repr__()
-        else:
-            return u''
+        return unicode(self.__repr__()) or u''
 
     def as_xml(self):
-        """
-        Returns this instance as XML.
-        """
-        xml_to_return = etree.Element("languages")
+        u"""Returns this instance as XML."""
+        xml_to_return = etree.Element(u'languages')
         for key, value in self.__dict__.iteritems():
-            if key != 'languages':
-                language = etree.Element("language", code=key)
-                if value:
-                    language.text = value.name
-                else:
-                    language.text = ""
+            if key != u'languages':
+                language = etree.Element(u'language', code=key)
+                language.text = value.name if value else u''
                 xml_to_return.append(language)
-
         return etree.tostring(xml_to_return)

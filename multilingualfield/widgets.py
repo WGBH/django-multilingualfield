@@ -126,7 +126,7 @@ class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget, MultiWidget)
             # Both MultiLingualCharField and MultiLingualTextField instances provide `MultiLingualText` instances by
             # default but handling for raw XML has been included for convenience.
             if isinstance(value, datastructures.MultiLingualText):
-                text_dict = {code: getattr(value, code) for code, verbose in LANGUAGES}
+                text_dict = dict((code, getattr(value, code)) for code, verbose in LANGUAGES)
             else:
                 # Converting XML (passed-in as `value`) to a python object via lxml
                 try:

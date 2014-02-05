@@ -167,10 +167,10 @@ class MultiLingualFile(object):
                 # with the language code (i.e. 'en', 'de', 'fr') as the key
                 text_dict = {}
                 try:
-                    text_dict = {
-                        unicode(l.get(u'code')): unicode(l.text or u'')
+                    text_dict = dict(
+                        (unicode(l.get(u'code')), unicode(l.text or u''))
                         for l in xml_as_python_object.language
-                    }
+                    )
                 except AttributeError:
                     # Empty fields throw-off lxml and cause an AttributeError
                     pass

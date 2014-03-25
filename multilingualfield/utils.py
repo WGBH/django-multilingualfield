@@ -1,4 +1,6 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from django.core.files.storage import default_storage
 from lxml import objectify, etree
@@ -21,7 +23,8 @@ def construct_MultiLingualText_from_xml(xml, instance):
 
     * `instance`: A MultiLingualText instance
 
-    If the above block of XML was passed to this function (as `xml`) `instance` will now have two attributes:
+    If the above block of XML was passed to this function (as `xml`)
+    `instance` will now have two attributes:
 
     * `en` with a value of 'Hello'
     * `es` with a value of 'Hola'
@@ -61,7 +64,8 @@ def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
 
     * `instance`: A MultiLingualFile instance
 
-    If the above block of XML was passed to this function (as `xml`) `instance` will now have two attributes:
+    If the above block of XML was passed to this function (as `xml`)
+    `instance` will now have two attributes:
     * `en` with a file stored at path/to/file.ext within `storage`
     * `es` with a file stored at path/to/file2.ext within `storage`
     """
@@ -75,10 +79,19 @@ def construct_MultiLingualFile_from_xml(xml, instance, storage=default_storage):
         # with the language code (i.e. 'en', 'de', 'fr') as the key
         text_dict = {}
         try:
-            text_dict = dict((unicode(l.get('code')), unicode(l.text or u'')) for l in xml_as_python_object.language)
+            text_dict = dict(
+                (unicode(l.get('code')), unicode(l.text or u''))
+                for l in xml_as_python_object.language
+            )
         except AttributeError:
             # Empty fields throw-off lxml and cause an AttributeError
             pass
         for code, verbose in LANGUAGES:
-            setattr(instance, code, MultiLingualFieldFile(storage=storage, name=text_dict[code])
-                                    if code in text_dict else None)
+            setattr(
+                instance,
+                code,
+                MultiLingualFieldFile(
+                    storage=storage,
+                    name=text_dict[code]
+                ) if code in text_dict else None
+            )

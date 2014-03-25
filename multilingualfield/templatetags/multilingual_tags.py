@@ -11,8 +11,9 @@ register = template.Library()
 
 class GetTranslationForContext(AsTag):
     u"""
-    Retrieves the correct 'translation' for a MultiLingualText instance based on the language in the current thread
-    (by calling `django.utils.translation.get_language()`).
+    Retrieves the correct 'translation' for a MultiLingualText instance based
+    on the language in the current thread (by calling
+    `django.utils.translation.get_language()`).
 
     Can be used as a standalone tag::
 
@@ -24,11 +25,18 @@ class GetTranslationForContext(AsTag):
         {{ the_title }}
     """
     name = u'get_for_current_language'
-    options = Options(Argument(u'attr', required=True), u'as', Argument(u'varname', required=False, resolve=False))
+    options = Options(
+        Argument(u'attr', required=True),
+        u'as',
+        Argument(u'varname', required=False, resolve=False)
+    )
 
     def get_value(self, context, attr):
         try:
-            return getattr(attr, context.get(u'LANGUAGE_CODE', settings.LANGUAGES[0][0]))
+            return getattr(
+                attr,
+                context.get(u'LANGUAGE_CODE', settings.LANGUAGES[0][0])
+            )
         except AttributeError:
             return u''
 
@@ -47,8 +55,12 @@ class GetTranslationByLanguageCode(AsTag):
         {{ the_title }}
     """
     name = u'get_trans_by_code'
-    options = Options(Argument(u'attr', required=True), Argument(u'language_code', required=True),
-                      u'as', Argument(u'varname', required=False, resolve=False))
+    options = Options(
+        Argument(u'attr', required=True),
+        Argument(u'language_code', required=True),
+        u'as',
+        Argument(u'varname', required=False, resolve=False)
+    )
 
     def get_value(self, context, attr, language_code):
         try:

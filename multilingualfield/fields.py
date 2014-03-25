@@ -31,11 +31,12 @@ class MultiLingualTextField(Field):
             del kwargs[u'max_length']
         super(MultiLingualTextField, self).__init__(*args, **kwargs)
 
+    def get_internal_type(self):
+        return 'TextField'
+
     def db_type(self, connection):
         db_type = self._db_type
-        if db_type == 'text':
-            db_type = 'TextField'
-        elif db_type == 'mediumtext':
+        if db_type == 'mediumtext':
             if connection.settings_dict['ENGINE'] == 'django.db.backends.mysql':
                 pass
             else:

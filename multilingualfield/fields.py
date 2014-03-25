@@ -113,7 +113,7 @@ class MultiLingualTextField(Field):
         # This is a fairly standard way to set up some defaults while letting
         # the caller override them.
         defaults = {
-            u'form_class': forms.MultiLingualDjangoAdminTextField,
+            u'form_class': forms.MultiLingualTextField,
             u'individual_widget_max_length': self.individual_widget_max_length
         }
         defaults.update(kwargs)
@@ -129,7 +129,7 @@ class MultiLingualCharField(MultiLingualTextField):
         # This is a fairly standard way to set up some defaults while letting
         # the caller override them.
         defaults = {
-            u'form_class': forms.MultiLingualDjangoAdminCharField,
+            u'form_class': forms.MultiLingualCharField,
             u'individual_widget_max_length': self.individual_widget_max_length
         }
         defaults.update(kwargs)

@@ -98,7 +98,7 @@ class MultiLingualCharField(MultiLingualTextField):
 
 class MultiLingualDjangoAdminTextField(MultiLingualTextField):
     u"""The field used by MultiLingualCharField."""
-    widget = widgets.MultiLingualTextFieldWidget
+    widget = widgets.MultiLingualTextFieldDjangoAdminWidget
 
 
 class MultiLingualDjangoAdminCharField(MultiLingualTextField):

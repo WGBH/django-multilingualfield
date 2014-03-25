@@ -32,7 +32,7 @@ class WidgetWithLanguageAddOn(object):
         # FIXME do something with self.label ?
         html = super(WidgetWithLanguageAddOn, self).render(*args, **kwargs)
         return mark_safe(u'<div class="input-prepend tab_element tab_link_{0}">'
-                         u'<span class="add-on">{2}</span>{1}'
+                         u'<span class="add-on control-label">{2}</span>{1}'
                          u'</div>'.format(self.language_code, html, self.label))
 
 
@@ -65,6 +65,12 @@ class CustomClearableFileInput(ClearableFileInput):
     template_with_initial = (
         u'%(initial_file)s %(initial_text)s: '
         u'%(initial)s %(clear_template)s<br />%(input_text)s: %(input)s'
+    )
+    template_with_clear = (
+        '<span class="clearable-file-input">'
+        '%(clear)s'
+        '<label for="%(clear_checkbox_id)s">%(clear_checkbox_label)s</label>'
+        '</span>'
     )
 
     def initial_filename_name(self, name):
@@ -158,6 +164,17 @@ class MultiLingualFieldBaseMixInWidget(object):
         ]
         super(MultiLingualFieldBaseMixInWidget, self).__init__(widgets, attrs)
 
+    def render(self, name, value, attrs=None):
+        rendered_widget = super(
+            MultiLingualFieldBaseMixInWidget, self
+        ).render(name, value, attrs)
+        return mark_safe(
+            '<div class="multilingual-mod %s">%s</div>' % (
+                self.__class__.__name__.lower(),
+                rendered_widget
+            )
+        )
+
 
 class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget,
                                   MultiWidget):
@@ -241,3 +258,26 @@ class MultiLingualClearableFileInputWidget(MultiLingualFieldBaseMixInWidget,
         ) if value else {}
         # Returning text from XML tree in order dictated by LANGUAGES
         return [text_dict.get(code) for code, verbose in LANGUAGES]
+
+
+class MultiLingualFieldDjangoAdminBaseMixInWidget(object):
+    u"""
+    A mix-in class that provides django admin-specific styles
+    to a MultiLingualField widget.
+    """
+    class Media:
+        css = {
+            'all': ('multilingualfield/css/multilingualfield-djangoadmin.css',),
+        }
+
+
+class MultiLingualCharFieldDjangoAdminWidget(
+        MultiLingualFieldDjangoAdminBaseMixInWidget,
+        MultiLingualCharFieldWidget):
+    pass
+
+
+class MultiLingualTextFieldDjangoAdminWidget(
+        MultiLingualFieldDjangoAdminBaseMixInWidget,
+        MultiLingualTextFieldWidget):
+    pass

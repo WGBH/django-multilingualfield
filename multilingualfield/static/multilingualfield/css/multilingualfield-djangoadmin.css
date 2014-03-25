@@ -1,0 +1,28 @@
+.multilingual-mod {
+    float:left;
+    display:block;
+    clear:right;
+    overflow:auto;
+}
+
+.multilingual-mod + p.help {
+    float:left;
+}
+
+.multilingual-mod .input-prepend span.add-on {
+    min-width: 7em;
+    font-weight: bold;
+    display: block;
+    float: left;
+    padding-top: .5em;
+    color: #666;
+}
+
+.multilingual-mod input[type="text"] {
+    float:left;
+    width:400px;
+}
+
+.multilingual-mod span.clearable-file-input label {
+    padding:0 0 0 4px;
+}

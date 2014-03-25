@@ -96,6 +96,15 @@ class MultiLingualCharField(MultiLingualTextField):
     widget = widgets.MultiLingualCharFieldWidget
 
 
+class MultiLingualDjangoAdminTextField(MultiLingualTextField):
+    u"""The field used by MultiLingualCharField."""
+    widget = widgets.MultiLingualTextFieldWidget
+
+
+class MultiLingualDjangoAdminCharField(MultiLingualTextField):
+    widget = widgets.MultiLingualCharFieldDjangoAdminWidget
+
+
 class FileOrAlreadyExistantFilePathField(FileField):
     u"""
     A FileField subclass that provides either an instance of a 'File'

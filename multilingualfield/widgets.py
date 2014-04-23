@@ -31,9 +31,11 @@ class WidgetWithLanguageAddOn(object):
     def render(self, *args, **kwargs):
         # FIXME do something with self.label ?
         html = super(WidgetWithLanguageAddOn, self).render(*args, **kwargs)
-        return mark_safe(u'<div class="input-prepend tab_element tab_link_{0}">'
-                         u'<span class="add-on control-label">{2}</span>{1}'
-                         u'</div>'.format(self.language_code, html, self.label))
+        return mark_safe(
+            u'<div class="input-prepend tab_element tab_link_{0}">'
+            u'<span class="add-on control-label">{2}</span>{1}'
+            u'</div>'.format(self.language_code, html, self.label)
+        )
 
 
 class WidgetWithLanguageLabel(object):
@@ -51,9 +53,13 @@ class WidgetWithLanguageLabel(object):
 
     def render(self, name, value, attrs=None):
         html = super(WidgetWithLanguageLabel, self).render(name, value, attrs)
-        return mark_safe(u'<div class="control-group tab_element tab_link{0}">'
-                         u'<label class="control-label">{1}</label><div class="controls">{2}</div></div>'.format(
-                         self.language_code, self.label, html))
+        return mark_safe(
+            (
+                u'<div class="control-group tab_element tab_link{0}">'
+                u'<label class="control-label">{1}</label>'
+                u'<div class="controls">{2}</div></div>'
+            ).format(self.language_code, self.label, html)
+        )
 
 
 class CustomClearableFileInput(ClearableFileInput):
@@ -121,7 +127,8 @@ class CustomClearableFileInput(ClearableFileInput):
                     False,
                     attrs={u'id': checkbox_id}
                 )
-                substitutions[u'clear_template'] = self.template_with_clear % substitutions
+                substitutions[u'clear_template'] = self.template_with_clear % \
+                    substitutions
 
         return mark_safe(template % substitutions)
 
@@ -210,7 +217,8 @@ class MultiLingualTextFieldWidget(MultiLingualFieldBaseMixInWidget,
                     xml_as_python_object = objectify.fromstring(value)
                 except XMLSyntaxError:
                     raise Exception(
-                        INVALID_XML_ERROR + ' MultiLingualTextFieldWidget.decompress()!'
+                        '%s MultiLingualTextFieldWidget.decompress()!' %
+                        INVALID_XML_ERROR
                     )
                 else:
                     # Creating a dictionary of all the languages passed in the
@@ -267,7 +275,9 @@ class MultiLingualFieldDjangoAdminBaseMixInWidget(object):
     """
     class Media:
         css = {
-            'all': ('multilingualfield/css/multilingualfield-djangoadmin.css',),
+            'all': (
+                'multilingualfield/css/multilingualfield-djangoadmin.css',
+            ),
         }
 
 
@@ -280,4 +290,10 @@ class MultiLingualCharFieldDjangoAdminWidget(
 class MultiLingualTextFieldDjangoAdminWidget(
         MultiLingualFieldDjangoAdminBaseMixInWidget,
         MultiLingualTextFieldWidget):
+    pass
+
+
+class MultiLingualClearableFileInputDjangoAdminWidget(
+        MultiLingualFieldDjangoAdminBaseMixInWidget,
+        MultiLingualClearableFileInputWidget):
     pass

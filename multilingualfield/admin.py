@@ -1,15 +1,17 @@
 from django.contrib.admin import ModelAdmin
 
-from . import widgets
-from .fields import MultiLingualCharField, MultiLingualTextField
+from . import widgets, fields
 
 
 class MultiLingualFieldModelAdmin(ModelAdmin):
     formfield_overrides = {
-        MultiLingualCharField: {
+        fields.MultiLingualCharField: {
             'widget': widgets.MultiLingualCharFieldDjangoAdminWidget
         },
-        MultiLingualTextField: {
+        fields.MultiLingualTextField: {
             'widget': widgets.MultiLingualTextFieldDjangoAdminWidget
+        },
+        fields.MultiLingualFileField: {
+            'widget': widgets.MultiLingualClearableFileInputDjangoAdminWidget
         },
     }

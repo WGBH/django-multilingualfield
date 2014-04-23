@@ -1,4 +1,6 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import File
@@ -8,6 +10,7 @@ from django.utils.translation import get_language
 from lxml import objectify, etree
 
 from . import utils, LANGUAGES, INVALID_XML_ERROR, UNKNOWN_LANGUAGE_CODE_ERROR
+
 
 class MultiLingualText(object):
     u"""
@@ -56,7 +59,9 @@ class MultiLingualText(object):
             val = getattr(self, current)
         except AttributeError:
             if current not in [code for code, verbose in LANGUAGES]:
-                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR.format(current))
+                raise ImproperlyConfigured(
+                    UNKNOWN_LANGUAGE_CODE_ERROR.format(current)
+                )
             else:
                 val = ''
         return val
@@ -78,6 +83,21 @@ class MultiLingualText(object):
                 language.text = value
                 xml_to_return.append(language)
         return etree.tostring(xml_to_return)
+
+    def __nonzero__(self):
+        u"""
+        Provides 'truth value testing' to MultiLingualText instances
+        based on the current language thread.
+
+        Basically, if the language-specific attribute of a MultiLingualText
+        instance associated with the current language thread would evaluate
+        to `False` then calling `if` on the instance itself will evaluate to
+        `False` as well.
+        """
+        if self.get_for_current_language():
+            return True
+        else:
+            return False
 
 
 class MultiLingualFieldFile(File):
@@ -117,7 +137,8 @@ class MultiLingualFieldFile(File):
 
     @property
     def size(self):
-        return self.storage.size(self.name) if self._committed else self.file.size
+        return self.storage.size(self.name) if self._committed else \
+            self.file.size
 
     def open(self, mode=u'rb'):
         self.file.open(mode)
@@ -173,8 +194,9 @@ class MultiLingualFile(object):
             except etree.XMLSyntaxError:
                 raise Exception(INVALID_XML_ERROR + ' MultiLingualText')
             else:
-                # Creating a dictionary of all the languages passed in the value XML
-                # with the language code (i.e. 'en', 'de', 'fr') as the key
+                # Creating a dictionary of all the languages passed in the
+                # value XML with the language code (i.e. 'en', 'de',
+                # 'fr') as the key
                 text_dict = {}
                 try:
                     text_dict = dict(
@@ -203,12 +225,28 @@ class MultiLingualFile(object):
             val = getattr(self, current)
         except AttributeError:
             if current not in [code for code, verbose in LANGUAGES]:
-                raise ImproperlyConfigured(UNKNOWN_LANGUAGE_CODE_ERROR.format(current))
+                raise ImproperlyConfigured(
+                    UNKNOWN_LANGUAGE_CODE_ERROR.format(current)
+                )
             return None
         return smart_str(val, errors='ignore')
 
     def __unicode__(self):
         return unicode(self.__repr__()) or u''
+
+    def __nonzero__(self):
+        """
+        Provides 'truth value testing' based on the current language thread.
+
+        Basically, if the language-specific attribute of a MultiLingualText
+        instance associated with the current language thread would evaluate
+        to `False` then calling `if` on the instance itself will evaluate to
+        `False` as well.
+        """
+        if self.__unicode__():
+            return True
+        else:
+            return False
 
     def as_xml(self):
         u"""Returns this instance as XML."""

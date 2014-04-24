@@ -8,24 +8,26 @@ A [south](http://south.aeracode.org/)-compatible suite of django fields that mak
 
 0.3
 
-## Requirements ##
-
-* `django-classy-tags` >= 0.3.4.1
-* `lxml` >= 3.1.2
-
 ## Installation ##
 
 Installation is easy with [pip](https://pypi.python.org/pypi/pip):
 
-```
+```bash
 $ pip install django-multilingualfield
 ```
+
+### Requirements ###
+
+`django-multilingualfield` will install the following dependencies:
+
+* `django-classy-tags` >= 0.3.4.1
+* `lxml` >= 3.1.2
 
 ### Settings ###
 
 To use `django-multilingualfield`, first add `multilingualfield` to `INSTALLED_APPS`:
 
-```
+```python
 INSTALLED_APPS += ('multilingualfield')
 ```
 
@@ -33,7 +35,7 @@ Secondly, make sure that [`LANGUAGES`](https://docs.djangoproject.com/en/dev/ref
 
 If you don't have [`LANGUAGE_CODE`](https://docs.djangoproject.com/en/dev/ref/settings/#language-code) set in your settings file it will default to 'en-us' (U.S. English). It is recommended you manually set [`LANGUAGE_CODE`](https://docs.djangoproject.com/en/dev/ref/settings/#language-code) (even if you are keeping the default value of 'en-us') *IN ADDITION TO* adding an entry for that language code (as the _first_ language) in [`LANGUAGES`](https://docs.djangoproject.com/en/dev/ref/settings/#languages). Here's an example:
 
-```
+```python
 LANGUAGE_CODE = 'en'
 
 LANGUAGES = [
@@ -41,12 +43,12 @@ LANGUAGES = [
     ('es', 'Espa&#241;ol') # See note below note
 ]
 ```
-> ##### NOTE #####
+> #### NOTE ####
 > `&#241;` is the UTF8 encoding for 'ñ'
 
 If you'd like to use MultiLingual* fields in templates you'll need django's `'django.middleware.locale.LocalMiddleware'` added to your [`MIDDLEWARE_CLASSES`](https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-MIDDLEWARE_CLASSES) setting and `'django.core.context_processors.i18n'` added to your [`TEMPLATE_CONTEXT_PROCESSORS`](https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-TEMPLATE_CONTEXT_PROCESSORS) setting:
 
-```
+```python
 MIDDLEWARE_CLASSES += (
     'django.middleware.locale.LocaleMiddleware',
 )
@@ -56,7 +58,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 )
 ```
 
-> ##### NOTE #####
+> #### NOTE ####
 > django-multilingualfield uses [`django.utils.translation.get_language`](https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.translation.get_language) to determine which translation to serve by default.
 > To better understand how Django determines language preference read the aptly titled ['How Django discovers language preference'](https://docs.djangoproject.com/en/dev/topics/i18n/translation/#how-django-discovers-language-preference) section from the i18n topic page within the official django documentation.
 
@@ -88,7 +90,7 @@ Any options you would pass to a `CharField`, `TextField` or `FileField` (i.e. `b
 
 Use `MultiLingualCharField`, `MultiLingualTextField` and `MultiLingualFileField` just like you would any django field:
 
-```
+```python
 from django.db import models
 
 from multilingualfield import fields as mlf_fields
@@ -113,11 +115,11 @@ class TestModel(models.Model):
 
 `django-multilingualfield` is fully integrated with [south](http://south.aeracode.org/) so migrate to your heart's content!
 
-##### What's Stored In The Database #####
+#### What's Stored In The Database ####
 
 If `LANGUAGES` is set in your project's settings like this...
 
-```
+```python
 LANGUAGES = [
     ('en', 'English'),
     ('es', 'Espa&#241;ol')
@@ -126,7 +128,7 @@ LANGUAGES = [
 
 ...then `django-multilingualfield` will store translations for a piece of text in a single 'text' db column as XML in the following structure:
 
-```
+```xml
 <languages>
     <language code="en">
         Hello
@@ -139,7 +141,7 @@ LANGUAGES = [
  > ##### NOTE #####
  > The example above includes whitespace for readability, the final value stored in the database will have all between-tag whitespace removed.
 
-##### What's Served By The Application #####
+#### What's Served By The Application ####
 
 Even though `MultiLingualCharField` and `MultiLingualTextField` instances are stored in the database as XML they are served to the application as a python object. The above block of XML would return an instance of `multilingualfield.fields.MultiLingualText` with two attributes:
 
@@ -148,15 +150,15 @@ Even though `MultiLingualCharField` and `MultiLingualTextField` instances are st
 
 The translation corresponding to the current language of the active thread (as determined by calling [`django.utils.translation.get_language`](https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.translation.get_language)) will be returned by directly accessing the field.
 
-##### Creating Instances in the Shell #####
+#### Creating Instances in the Shell ####
 
 Let's create an instance of our above example model (`TestModel`) in the python shell:
 
-```
+```bash
 $ python manage.py shell
 ```
 
-```
+```python
 >>> from testapp.models import TestModel
 >>> from multilingualfield.datastructures import MultiLingualText
 >>> title = MultiLingualText()
@@ -199,7 +201,7 @@ The default formfields for MultiLingual* fields do not include admin-friendly st
 
 1. Swap-out `admin.ModelAdmin` for `MultiLingualFieldModelAdmin` in your admin configs for models that have MultiLingual* fields:
 
-    ```
+    ```python
     # testapp.admin
     from django.contrib import admin
 
@@ -220,7 +222,7 @@ The default formfields for MultiLingual* fields do not include admin-friendly st
 
 2. Manually specify MultiLingual* widgets with [`formfield_overrides`](https://docs.djangoproject.com/en/dev/ref/contrib/admin/#django.contrib.admin.ModelAdmin.formfield_overrides):
 
-    ```
+    ```python
     # testapp.admin
     from django.contrib import admin
 
@@ -250,7 +252,7 @@ The default formfields for MultiLingual* fields do not include admin-friendly st
 
 3. Manually specify MultiLingual* widgets on a ModelForm subclass:
 
-    ```
+    ```python
     # testapp.forms
     from django.forms.models import ModelForm
 
@@ -277,7 +279,7 @@ The default formfields for MultiLingual* fields do not include admin-friendly st
 
     Integrating the custom form into your admin configuration:
 
-    ```
+    ```python
     # testapp.admin
     from django.contrib import admin
 
@@ -299,7 +301,7 @@ The default formfields for MultiLingual* fields do not include admin-friendly st
 
 Template usage is simple & straight forward, here's an example template for how you might render a instance of `TestModel`:
 
-```
+```python
 {% load i18n %}
 <html>
     <head>
@@ -317,12 +319,12 @@ Template usage is simple & straight forward, here's an example template for how 
 </html>
 ```
 
-> ##### NOTE #####
+> #### NOTE ####
 > For more information about the `trans` templatetag used in the example above check out the [django docs](https://docs.djangoproject.com/en/dev/topics/i18n/translation/#trans-template-tag).
 
 The example above is typical for most use cases (when you want to render values associated with the user's current language thread) but you always have access to the language-specific attributes:
 
-```
+```html
 {% load i18n %}
 <html>
     <head>

@@ -10,12 +10,21 @@ setup(
     author_email='jonathan_ellenberger@wgbh.org',
     url='http://github.com/WGBH/django-multilingualfield/',
     license='MIT License, see LICENSE',
-    description='A django field for storing multiple manually-written'
-                'translations of the same piece of text.',
+    description='A south-compatible suite of django fields that make it easy '
+                'to manage multiple translations of text-based content '
+                '(including files/images).',
     long_description=open('README.md').read(),
     zip_safe=False,
     install_requires=[
         'django-classy-tags>=0.3.4.1',
         'lxml>=3.1.2'
     ],
+    package_data={
+        'multilingualfield': [
+            'static/multilingualfield/css/*.css'
+        ]
+    },
+    classifiers=[
+        'Framework :: Django',
+    ]
 )

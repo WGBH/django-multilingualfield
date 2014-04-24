@@ -2,7 +2,7 @@
 
 ## About ##
 
-A [south](http://south.aeracode.org/)-compatible django field for storing multiple manually-written translations for the same piece of text.
+A [south](http://south.aeracode.org/)-compatible suite of django fields that make it easy to manage multiple translations of text-based content (including files/images).
 
 ### Current Version ###
 
@@ -15,16 +15,10 @@ A [south](http://south.aeracode.org/)-compatible django field for storing multip
 
 ## Installation ##
 
-`django-multilingualfield` isn't in the [CheeseShop](https://pypi.python.org/pypi) yet but it does have a setup.py so installation is easy with [pip](https://pypi.python.org/pypi/pip):
+Installation is easy with [pip](https://pypi.python.org/pypi/pip):
 
 ```
-$ pip install https://github.com/WGBH/django-multilingualfield/archive/master.zip
-```
-
-or, if you downloaded the archive yourself:
-
-```
-$ pip install /path/to/archive.zip
+$ pip install django-multilingualfield
 ```
 
 ### Settings ###
@@ -68,9 +62,9 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 
 ## Overview ##
 
-django has [excellent translation tools](https://docs.djangoproject.com/en/dev/topics/i18n/translation/) but a recent project at WGBH required manually-written translations for nearly all text content served by the site.
+django has [excellent translation tools](https://docs.djangoproject.com/en/dev/topics/i18n/translation/) but a recent project at WGBH required manually-written translations for nearly all text & image content served by the site.
 
-I didn't want to create multiple `CharField` or `TextField` attributes for each piece of text (i.e. 'title_en' and 'title_es') for multiple reasons:
+I didn't want to create multiple `CharField`, `TextField` or `ImageField` attributes for each field that needed translations (i.e. 'title_en' and 'title_es') for multiple reasons:
 
 1. They'd be a giant pain to keep track of.
 2. Templates and/or views would be polluted with alot of crufty if/else statements.
@@ -86,13 +80,13 @@ I didn't want to create multiple `CharField` or `TextField` attributes for each 
 
 At the database level, `MultiLingualCharField`, `MultiLingualTextField` and `MultiLingualFileField` are essentially identical in that their content is stored within 'text' columns (as opposed to either 'varchar' or 'text'); they diverge only in the widgets/forms they use.
 
-Any options you would pass to a `CharField`, `TextField` or `FileField` (i.e. `blank=True`, `max_length=50`, `upload_to='path/'`, `storage=StorageClass()`) will work as expected but `max_length` will not be enforced at a database level (only during form creation and input validation).
+Any options you would pass to a `CharField`, `TextField` or `FileField` (i.e. `blank=True`, `max_length=50`, `upload_to='path/'`, `storage=StorageClass()`) will work as expected but `max_length` **will not be enforced at a database level** (only during form creation and input validation).
 
 ## Examples ##
 
 ### Model Example ###
 
-Use `MultiLingualCharField`, `MultiLingualTextField` and MultiLingualFileField just like you would any django field:
+Use `MultiLingualCharField`, `MultiLingualTextField` and `MultiLingualFileField` just like you would any django field:
 
 ```
 from django.db import models
@@ -306,7 +300,7 @@ The default formfields for MultiLingual* fields do not include admin-friendly st
 Template usage is simple & straight forward, here's an example template for how you might render a instance of `TestModel`:
 
 ```
-    {% load i18n %}
+{% load i18n %}
 <html>
     <head>
         <title>{{ object.title }}</title>
@@ -338,10 +332,10 @@ The example above is typical for most use cases (when you want to render values 
         <h1>{{ object.title }}</h2>
         <!-- Forcing the English display of object.title -->
         <h2>{% trans 'Title (English)' %}: {{ object.title.en }}</h2>
-        
+
         <!-- Forcing the Spanish display of object.title -->
         <h2>{% trans 'Title (Spanish)' %}: {{ object.title.es }}</h2>
-        
+
         <p>{{ object.short_description }}</p>
         {% if object.long_description %}
             {{ object.long_description }}

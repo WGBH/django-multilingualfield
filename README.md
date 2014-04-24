@@ -345,7 +345,3 @@ The example above is typical for most use cases (when you want to render values 
     </body>
 </html>
 ```
-
-# TODO
-* Version bump
-* Upload to PyPI (adjust installation docs prior)

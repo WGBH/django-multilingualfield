@@ -42,7 +42,13 @@ class MultiLingualText(object):
         self.languages = LANGUAGES
         # Converting XML (passed-in as `xml`) to a python object via lxml
         if xml:
-            utils.construct_MultiLingualText_from_xml(xml, self)
+            try:
+                utils.construct_MultiLingualText_from_xml(xml, self)
+            except etree.XMLSyntaxError:
+                if not xml.startswith('<'):
+                    setattr(self, LANGUAGES[0][0], xml)
+                else:
+                    raise
         else:
             for code, verbose in LANGUAGES:
                 setattr(self, code, u'')
@@ -59,9 +65,18 @@ class MultiLingualText(object):
             val = getattr(self, current)
         except AttributeError:
             if current not in [code for code, verbose in LANGUAGES]:
-                raise ImproperlyConfigured(
-                    UNKNOWN_LANGUAGE_CODE_ERROR.format(current)
-                )
+                raise_exception = True
+                if '-' in current:
+                    try:
+                        val = getattr(self, current[:2])
+                    except AttributeError:
+                        pass
+                    else:
+                        raise_exception = False
+                if raise_exception:
+                    raise ImproperlyConfigured(
+                        UNKNOWN_LANGUAGE_CODE_ERROR.format(current)
+                    )
             else:
                 val = ''
         return val

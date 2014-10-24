@@ -32,7 +32,7 @@ def construct_MultiLingualText_from_xml(xml, instance):
     try:
         xml_as_python_object = objectify.fromstring(xml)
     except etree.XMLSyntaxError:
-        raise Exception(INVALID_XML_ERROR + ' MultiLingualText')
+        raise etree.XMLSyntaxError(INVALID_XML_ERROR + ' MultiLingualText')
     else:
         # Creating a dictionary of all the languages passed in the value XML
         # with the language code (i.e. 'en', 'de', 'fr') as the key

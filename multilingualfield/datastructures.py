@@ -46,7 +46,13 @@ class MultiLingualText(object):
                 utils.construct_MultiLingualText_from_xml(xml, self)
             except Exception:
                 if not xml.startswith('<'):
-                    setattr(self, LANGUAGES[0][0], xml)
+                    for i, lang_tup in enumerate(LANGUAGES):
+                        code, verbose = lang_tup
+                        if i == 0:
+                            val = xml
+                        else:
+                            val = u''
+                        setattr(self, code, val)
                 else:
                     raise
         else:

@@ -44,7 +44,7 @@ class MultiLingualText(object):
         if xml:
             try:
                 utils.construct_MultiLingualText_from_xml(xml, self)
-            except etree.XMLSyntaxError:
+            except Exception:
                 if not xml.startswith('<'):
                     setattr(self, LANGUAGES[0][0], xml)
                 else:
